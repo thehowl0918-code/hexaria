@@ -1,0 +1,2237 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HEXARIA 헥사리아 — 프로토타입</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%AC%A1%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#dfe4df; --surface:#f4f6f2; --surface-2:#e6ebe5; --text:#18232a; --muted:#5d6b70; --line:#c3ccc5;
+  --brass:#9a6b1c; --brass-ink:#ffffff; --danger:#b23a32; --ok:#2c7a52;
+  --tile-vis:#cfd8cf; --tile-exp:#a9b4ab; --tile-unk:#7d8a83; --tile-edge:#eef2ec;
+  --center:#b8861f; --hl:#1b6f86; --table:#c8d1ca;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11181c; --surface:#18222a; --surface-2:#212d35; --text:#e3e8e4; --muted:#8e9ca0; --line:#2b3942;
+    --brass:#d9a441; --brass-ink:#1a1306; --danger:#e8685e; --ok:#5cc28e;
+    --tile-vis:#3a4b52; --tile-exp:#27343b; --tile-unk:#121a1f; --tile-edge:#0b1114;
+    --center:#e6b44c; --hl:#5fc6dc; --table:#1a252c;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11181c; --surface:#18222a; --surface-2:#212d35; --text:#e3e8e4; --muted:#8e9ca0; --line:#2b3942;
+  --brass:#d9a441; --brass-ink:#1a1306; --danger:#e8685e; --ok:#5cc28e;
+  --tile-vis:#3a4b52; --tile-exp:#27343b; --tile-unk:#121a1f; --tile-edge:#0b1114;
+  --center:#e6b44c; --hl:#5fc6dc; --table:#1a252c;
+  color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans KR',system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:15px;line-height:1.55}
+button{font:inherit}
+:focus-visible{outline:2px solid var(--hl);outline-offset:2px}
+.wordmark{font-family:'Cinzel','Times New Roman',serif;font-weight:800;letter-spacing:.08em}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--text);padding:9px 15px;border-radius:8px;cursor:pointer;transition:background .15s}
+.btn:hover:not(:disabled){background:var(--surface-2)}
+.btn.primary{background:var(--brass);color:var(--brass-ink);border-color:transparent;font-weight:700}
+.btn.primary:hover:not(:disabled){filter:brightness(1.07);background:var(--brass)}
+.btn.small{padding:5px 10px;font-size:13px}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--danger)}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn.active{outline:2px solid var(--hl);outline-offset:1px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.tag{display:inline-block;font-size:11.5px;padding:1px 7px;border-radius:5px;background:var(--surface-2);color:var(--muted);vertical-align:middle}
+.tag.wip{background:color-mix(in srgb,var(--danger) 14%,transparent);color:var(--danger)}
+.tag.temp{background:color-mix(in srgb,var(--brass) 18%,transparent);color:var(--brass)}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin-right:6px}
+
+/* 메인 */
+.menu{min-height:100vh;display:grid;place-items:center;padding:24px}
+.menu-inner{text-align:center;max-width:520px}
+.menu h1{font-size:clamp(44px,9vw,76px);margin:8px 0 0;line-height:1}
+.menu .sub{color:var(--muted);margin:10px 0 30px}
+.menu-btns{display:grid;gap:10px;max-width:280px;margin:0 auto}
+.menu-btns .btn{padding:13px}
+.menu .note{margin-top:28px;font-size:13px;color:var(--muted)}
+
+/* 일반 페이지 */
+.page{max-width:980px;margin:0 auto;padding:24px 18px 60px}
+.page h2{font-size:24px;margin:0 0 4px}
+.page h3{font-size:17px;margin:26px 0 8px}
+.page-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:500}
+ul.plain{margin:6px 0;padding-left:20px}
+.seat{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.seat input,.seat select{font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--text);min-width:0}
+
+/* 문명 선택 */
+.civ-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.civ-card{text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:16px;cursor:pointer;color:var(--text)}
+.civ-card.sel{border-color:var(--brass)}
+.civ-card .sym{font-size:28px;line-height:1}
+.civ-card h4{margin:8px 0 2px;font-size:20px}
+.civ-card .theme{color:var(--brass);font-weight:700;font-size:13px}
+
+/* 게임 레이아웃 */
+.topbar{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface);flex-wrap:wrap}
+.topbar .wordmark{font-size:20px}
+.topbar .spacer{flex:1}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:14px;padding:14px;max-width:1520px;margin:0 auto}
+@media (max-width:960px){.layout{grid-template-columns:1fr}}
+.board-wrap{position:relative;background:var(--table);border:1px solid var(--line);border-radius:14px;padding:6px;display:flex;flex-direction:column;align-items:center}
+.hud{width:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:4px 6px 8px;font-size:13.5px}
+.hud .spacer{flex:1}
+.hud .sl{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:12.5px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hud .sl.empty{color:var(--muted)}
+.hud .pts{font-weight:700}
+.pop{position:absolute;z-index:6;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:9px 10px;width:max-content;max-width:min(300px,92%);font-size:13.5px;visibility:hidden}
+.pop .t{font-weight:700;margin-bottom:2px}
+.pop .s{color:var(--muted);font-size:12.5px;margin-bottom:6px}
+.pop .btns{display:flex;flex-wrap:wrap;gap:5px}
+.pop .btn{padding:6px 10px;font-size:13px}
+.atk-mark{fill:var(--danger);fill-opacity:.42;stroke:var(--danger);stroke-width:2.2}
+svg.board{width:100%;height:auto;max-height:calc(100vh - 120px);display:block;touch-action:manipulation}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);padding:6px 10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px;border:1px solid var(--line)}
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 14px}
+.panel h4{margin:0 0 8px;font-size:14.5px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.big{font-size:30px;font-weight:700;line-height:1.1}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 0}
+.row + .row{border-top:1px dashed var(--line)}
+.slots{display:grid;gap:6px;margin-bottom:10px}
+.slot{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);min-height:40px}
+.slot .n{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--surface);font-size:12px;font-weight:700;flex:none}
+.slot .txt{flex:1;font-size:13.5px}
+.slot.empty .txt{color:var(--muted)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.actions .btn{text-align:left;padding:8px 10px;font-size:13.5px}
+.hint{font-size:13px;color:var(--muted);margin:9px 0 0;min-height:1.4em}
+.hint.warn{color:var(--danger)}
+.unit-row{display:flex;align-items:center;gap:8px;padding:6px 6px;border-radius:7px;cursor:pointer;width:100%;background:none;border:0;color:var(--text);text-align:left}
+.unit-row:hover{background:var(--surface-2)}
+.unit-row.sel{background:color-mix(in srgb,var(--hl) 16%,transparent)}
+.chip{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:12px;flex:none}
+.log{max-height:230px;overflow:auto;font-size:12.5px}
+.log div{padding:3px 0;border-bottom:1px solid var(--line)}
+.effect{border-left:3px solid var(--center);padding-left:10px}
+.scroll-list{max-height:240px;overflow:auto}
+.banner{background:color-mix(in srgb,var(--hl) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--hl) 40%,transparent);border-radius:10px;padding:10px 12px;font-size:14px}
+.banner.err{background:color-mix(in srgb,var(--danger) 12%,var(--surface));border-color:color-mix(in srgb,var(--danger) 40%,transparent)}
+textarea{font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);width:100%;resize:vertical;word-break:break-all}
+.code{font-family:'Cinzel','Times New Roman',serif;font-size:44px;font-weight:800;letter-spacing:.18em;line-height:1.1}
+.field{display:grid;gap:4px;margin:10px 0}
+.field input{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:700px){.two{grid-template-columns:1fr}}
+
+/* 오버레이 */
+.overlay{position:fixed;inset:0;background:rgba(8,12,14,.55);display:grid;place-items:center;padding:20px;z-index:50}
+.overlay.opaque{background:var(--bg)}
+.ov-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;max-width:520px;width:100%;max-height:85vh;overflow:auto}
+.ov-card h3{margin:0 0 10px;font-size:20px}
+.ov-card .btn{margin-top:16px;width:100%}
+
+/* 보드 SVG */
+.tile{cursor:pointer}
+.tile .base{fill:var(--tile-vis);stroke:var(--tile-edge);stroke-width:1.4}
+.tile.exp .base{fill:var(--tile-exp)}
+.tile.unk .base{fill:var(--tile-unk)}
+.tile:hover .base{filter:brightness(1.12)}
+.ov{pointer-events:none}
+.center-mark{fill:var(--center);fill-opacity:.25;stroke:var(--center);stroke-width:2.6}
+.hl-mark{fill:var(--hl);fill-opacity:.38;stroke:var(--hl);stroke-width:2}
+.vr-mark{fill:none;stroke:var(--hl);stroke-width:1.6;stroke-dasharray:3 2}
+.sel-mark{fill:none;stroke:var(--brass);stroke-width:3}
+.unit-label{font:700 11px 'IBM Plex Sans KR',sans-serif;fill:#fff;text-anchor:middle;dominant-baseline:central}
+@media (prefers-reduced-motion: no-preference){
+  .hl-mark{animation:pulse 1.4s ease-in-out infinite}
+  @keyframes pulse{50%{fill-opacity:.2}}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+'use strict';
+/* ==========================================================================
+   HEXARIA — 기본 시스템 프로토타입 v3
+   구조
+   [DATA]  CONFIG · CIVS · UNITS · BUILDINGS · ACTIONS · CENTER_EFFECTS · UNIMPLEMENTED · TEMP_RULES
+   [CORE]  Hex(좌표·거리) · Board · Hooks(수치 수정 훅) · Game(조회 헬퍼) · Log
+   [RULES] Rules · Purchase · Vision · CenterZone · Plan · Combat · Collision · ActionHandlers · Resolver · AI · Setup
+   [NET]   WebRTC P2P (PeerJS 방 코드 / 코드 직접 교환) · 호스트가 규칙 처리
+   [FLOW]  Flow(한 기기 진행)
+   [UI]    view* 함수 · boardSVG · Handlers · render
+   규칙 코드는 UI를 참조하지 않으며, UI는 규칙 모듈의 함수만 호출한다.
+   ========================================================================== */
+
+/* =============================== [DATA] =============================== */
+const CONFIG = {
+  boardRadius: 10,              // N = 1 + 3r(r+1) = 331
+  playerCount: 4,
+  startPoints: 15,
+  actionsPerTurn: 3,
+  baseVision: 1,
+  scoutVision: 3,
+  scoutDuration: 1,             // 정찰 지역 유지 턴 수 (정찰한 다음 턴이 끝날 때까지)
+  buildRange: 1,                // 건설은 기물 바로 옆 칸에만
+  resourcePairs: 2,             // 자원 칸 묶음 수. 한 묶음 = 4명에게 대칭인 4칸 → 기본 8칸
+  buildTurns: 2,                // 건설을 시작한 턴 뒤로 기술병이 움직이지 않아야 하는 턴 수
+  startZone: { corners: [[0,-10],[10,-10],[0,10],[-10,10]], radius: 4 },
+  centerTiles: [[0,0],[1,0]],
+  uniqueCivs: false,
+  // 한 슬롯 안에서 행동 종류를 처리하는 순서 (플레이어 간 순서가 아님)
+  // 공격은 같은 슬롯의 이동보다 먼저, 슬롯 시작 위치 기준으로 판정 (임시)
+  resolveOrder: ['attack','move','scout','build','upgrade','recruit','defend'],
+  temp: {
+    defaultMoveRange: 1,        // 이동력이 정해지지 않은 기물 → 1칸
+    allowPartialSubmit: true,
+    buildOnCenter: false        // 중앙 특별 구역에는 건설 불가
+  },
+  net: {
+    peerPrefix: 'hexaria-v3-',
+    peerjsUrl: 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
+    iceServers: [{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}],
+    chunk: 12000
+  }
+};
+
+const PLAYER_COLORS = ['#c9433b','#3a74c9','#2a9466','#c98b1f'];
+
+const CIVS = {
+  tek:   { id:'tek',   name:'텍',   sym:'⚙', theme:'기술 중심', traits:['초반보다 후반 성장에 유리','연구와 기술 발전에 특화'], abilities:null, hooks:null },
+  part:  { id:'part',  name:'파트', sym:'⚔', theme:'공격 중심', traits:['초반 전투에 강점','공격적인 운영에 특화'], abilities:null, hooks:null },
+  ram:   { id:'ram',   name:'람',   sym:'⚖', theme:'균형 중심', traits:['특정 분야에 치우치지 않음','안정적인 성능'], abilities:null, hooks:null },
+  bello: { id:'bello', name:'벨로', sym:'➶', theme:'속도 중심', traits:['기동력과 정찰에 특화','빠른 이동과 기습에 강점'], abilities:null, hooks:null }
+};
+
+// 기물: stats 값 null = 미정. temp 에 적힌 능력치는 임시값.
+const STAT_LABELS = { hp:'체력', atk:'공격력', move:'이동력', range:'공격 범위', vision:'시야' };
+const UNITS = {
+  infantry:   { id:'infantry',   name:'보병',   short:'보', cost:1, stats:{hp:3,atk:2,def:null,move:null,range:1}, temp:['hp'], abilities:[], hooks:null },
+  cavalry:    { id:'cavalry',    name:'기병',   short:'기', cost:3, stats:{hp:3,atk:null,def:null,move:3,range:null}, temp:['hp'],
+                moveStyle:'charge', chargeDamage:2,
+                abilities:['돌격: 한 방향 직선으로 최대 3칸 이동. 길에 있는 상대 기물을 뚫고 지나가며 피해를 준다. 상대 건물에 부딪히면 그 앞에서 멈추고 건물에 피해를 준다.'], hooks:null },
+  technician: { id:'technician', name:'기술병', short:'술', cost:5, stats:{hp:2,atk:null,def:null,move:null,range:null}, temp:['hp'], canBuild:true,
+                abilities:['건설: 바로 옆 칸에 건물을 짓기 시작한다. 시작한 턴 뒤 2턴이 끝날 때까지 움직이지 않아야 완공된다.'], hooks:null },
+  guardian:   { id:'guardian',   name:'수호병', short:'수', cost:2, stats:{hp:5,atk:1,def:null,move:null,range:1}, temp:['hp'], abilities:[], hooks:null },
+  // ---- 문명 전용 특수 기물: 살 수 없고, 문명 전용 건물 옆의 보병을 강화해서만 얻는다. 수치는 모두 임시 ----
+  artillery:  { id:'artillery',  name:'포격기',   short:'포', cost:5, purchasable:false, upgradeFrom:'infantry', upgradeCost:4, requires:'workshop', civ:'tek',   stats:{hp:2,atk:2,def:null,move:null,range:3}, temp:['hp','atk','range'],
+                abilities:['원거리 포격: 3칸 안의 보이는 상대를 공격한다.'], hooks:null },
+  berserker:  { id:'berserker',  name:'광전사',   short:'광', cost:3, purchasable:false, upgradeFrom:'infantry', upgradeCost:2, requires:'arena', civ:'part',  stats:{hp:4,atk:3,def:null,move:null,range:1}, temp:['hp','atk'],
+                abilities:['강타: 1칸 안의 상대에게 피해 3.'], hooks:null },
+  vanguard:   { id:'vanguard',   name:'정예병',   short:'정', cost:3, purchasable:false, upgradeFrom:'infantry', upgradeCost:2, requires:'barracks', civ:'ram',   stats:{hp:4,atk:2,def:null,move:2,range:1}, temp:['hp','atk','move'],
+                abilities:['만능: 2칸 이동, 1칸 공격 피해 2. 공사도 할 수 있다.'], canBuild:true, hooks:null },
+  ranger:     { id:'ranger',     name:'척후병',   short:'척', cost:2, purchasable:false, upgradeFrom:'infantry', upgradeCost:1, requires:'outpost', civ:'bello', stats:{hp:2,atk:1,def:null,move:2,range:1,vision:2}, temp:['hp','atk','move','vision'],
+                abilities:['기민함: 2칸 이동, 기본 시야 2칸.'], hooks:null }
+};
+
+// 건물: 모든 건물은 칸을 막는다(기물이 지나가거나 멈출 수 없음). 내구도가 0이 되면 파괴.
+const BUILDINGS = {
+  // 본진: 게임 시작 때 각자 시작 영역에 하나 놓는다. 파괴되면 탈락. 건설 불가.
+  hq:    { id:'hq',    name:'본진', short:'본', cost:0, durability:15, vision:1, buildable:false, summon:true, desc:'파괴되면 그 플레이어는 탈락한다. 마지막까지 본진이 남은 플레이어가 승리.' },
+  tower: { id:'tower', name:'망루', short:'망', cost:2, durability:4, vision:2, desc:'주변 2칸을 볼 수 있다.' },
+  wall:  { id:'wall',  name:'방벽', short:'벽', cost:1, durability:8, vision:0, desc:'내구도가 높은 벽. 길을 막는 데 쓴다.' },
+  camp:  { id:'camp',  name:'병영', short:'병', cost:3, durability:6, vision:1, summon:true, desc:'바로 옆 빈 칸에 기본 기물을 모집할 수 있는 전진 기지. 시야 1칸.' },
+  depot: { id:'depot', name:'보급소', short:'급', cost:2, durability:5, vision:0, income:1, onResource:true, desc:'자원 칸 위에만 지을 수 있다. 완공 후 매 턴 끝에 포인트 +1.' },
+  // ---- 문명 전용 건물: 그 문명만 지을 수 있고, 바로 옆 보병을 특수 기물로 강화할 수 있다 ----
+  workshop: { id:'workshop', name:'공학 연구소', short:'연', civ:'tek',   cost:3, durability:6, vision:0, unlocks:'artillery', desc:'옆 칸의 보병을 포격기로 강화할 수 있다.' },
+  arena:    { id:'arena',    name:'투기장',     short:'투', civ:'part',  cost:3, durability:6, vision:0, unlocks:'berserker', desc:'옆 칸의 보병을 광전사로 강화할 수 있다.' },
+  barracks: { id:'barracks', name:'훈련소',     short:'훈', civ:'ram',   cost:3, durability:6, vision:0, unlocks:'vanguard',  desc:'옆 칸의 보병을 정예병으로 강화할 수 있다.' },
+  outpost:  { id:'outpost',  name:'정찰 기지',  short:'초', civ:'bello', cost:3, durability:6, vision:1, unlocks:'ranger',    desc:'옆 칸의 보병을 척후병으로 강화할 수 있다. 시야 1칸.' }
+};
+
+const ACTIONS = {
+  move:    { id:'move',    name:'기물 이동', icon:'➜', implemented:true,  desc:'자신의 기물 하나를 이동한다. 기병은 직선으로 돌격한다.' },
+  build:   { id:'build',   name:'건물 건설', icon:'▦', implemented:true,  desc:'기술병이 바로 옆 빈 칸에 건물을 짓기 시작한다. 2턴 뒤 끝날 때까지 기술병이 움직이지 않으면 완공. 보유 포인트를 쓴다.' },
+  upgrade: { id:'upgrade', name:'기물 강화', icon:'▲', implemented:true,  desc:'완공된 문명 전용 건물 옆의 보병을 그 문명의 특수 기물로 바꾼다. 보유 포인트를 쓴다.' },
+  attack:  { id:'attack',  name:'공격',     icon:'✦', implemented:true,  desc:'1칸 안의 상대 기물이나 건물을 공격한다. 보병 피해 2, 수호병 피해 1. 기병은 공격 대신 이동으로 돌격한다.' },
+  recruit: { id:'recruit', name:'모집',     icon:'✚', implemented:true,  desc:'본진이나 병영 바로 옆 빈 칸에 기본 기물을 새로 소환한다. 기물 값만큼 포인트를 쓴다.' },
+  defend:  { id:'defend',  name:'방어',     icon:'◈', implemented:true,  desc:'자기 기물 하나가 이번 턴 동안 받는 피해를 막는다. 같은 슬롯 번호에 들어온 공격은 공격한 기물에게 그대로 되돌린다.' },
+  scout:   { id:'scout',   name:'정찰',     icon:'◉', implemented:true,  desc:'자신의 기물이 서 있는 자리 주변 3칸을 1턴 동안 볼 수 있다.' }
+};
+
+const CENTER_EFFECTS = [
+  { id:'b_relic',  kind:'buff',   name:'고대 유적의 가호', sample:true, desc:'점령한 플레이어에게 유리한 효과. 종류와 수치는 미정.', hooks:null },
+  { id:'b_strong', kind:'buff',   name:'전략 요충지',     sample:true, desc:'점령한 플레이어에게 유리한 효과. 종류와 수치는 미정.', hooks:null },
+  { id:'b_shrine', kind:'buff',   name:'성소의 기운',     sample:true, desc:'점령한 플레이어에게 유리한 효과. 종류와 수치는 미정.', hooks:null },
+  { id:'d_fog',    kind:'debuff', name:'짙은 안개',       sample:true, desc:'점령한 플레이어가 상대에게 불리한 효과를 건다. 종류와 수치는 미정.', hooks:null },
+  { id:'d_curse',  kind:'debuff', name:'저주받은 땅',     sample:true, desc:'점령한 플레이어가 상대에게 불리한 효과를 건다. 종류와 수치는 미정.', hooks:null },
+  { id:'d_jam',    kind:'debuff', name:'교란 신호',       sample:true, desc:'점령한 플레이어가 상대에게 불리한 효과를 건다. 종류와 수치는 미정.', hooks:null }
+];
+
+const UNIMPLEMENTED = [
+  ['기술병 공격','기술병의 공격 여부와 수치'],
+  ['자원 시스템','포인트 획득 등'],
+  ['추가 승리 조건','중앙 장악 승리, 턴 제한 점수 등'],
+  ['기물 능력치','방어력, 기병 외 이동력'],
+  ['기물 특수 능력','기병 돌격 외'],
+  ['건물 추가 효과','건물 종류 추가, 건물 수리'],
+  ['문명별 능력','특수 기물 외의 능력치 보정과 특수 효과'],
+  ['중앙 구역 효과 내용','실제 효과 종류와 수치'],
+  ['중앙 2칸 동시 점령 효과',''],
+  ['기물 최대 보유 수량','현재 제한 없음']
+];
+const TEMP_RULES = [
+  '체력: 보병 3, 기병 3, 기술병 2, 수호병 5',
+  '같은 슬롯에서는 공격을 이동보다 먼저, 슬롯 시작 위치 기준으로 판정',
+  '공격은 상대 건물도 대상으로 할 수 있음',
+  '공격 대상이 처리 전에 사거리 밖으로 나가면 공격 실패',
+  '건물: 망루 2점·내구도 4·시야 2칸, 방벽 1점·내구도 8. 건설 비용은 남은 기물 포인트로 낸다',
+  '건설은 기술병(람 문명은 정예병도)만 할 수 있음',
+  '본진 내구도 15, 시야 1칸. 배치 단계에서 시작 영역 안에 직접 놓음',
+  '본진이 파괴되면 그 플레이어의 기물과 건물이 모두 사라지고 탈락. 같은 슬롯에 모두 탈락하면 무승부',
+  '방어는 기물만 보호함 (건물·본진 제외). 되돌린 피해는 다시 막을 수 없음',
+  '문명 전용 특수 기물의 능력치와 강화 비용 (포격기 4점, 광전사 2점, 정예병 2점, 척후병 1점), 문명 전용 건물 3점·내구도 6',
+  '강화는 보병만 가능하며, 강화 전 입은 피해는 그대로 남음',
+  '공사 중인 칸도 길을 막고 공격받을 수 있으며, 공사 중에는 건물 효과(시야)가 없음',
+  '기술병이 움직이거나 쓰러져 건설이 취소되면 비용을 돌려받음. 공사 중인 건물이 파괴되면 돌려받지 못함',
+  '기술병 한 명은 한 번에 한 곳만 지을 수 있음',
+  '기병 외 기물은 이동 1회당 1칸',
+  '같은 칸으로 여러 기물이 이동하거나, 기물이 있는 칸으로 이동하거나, 두 기물이 자리를 맞바꾸려 하면 관련 이동이 모두 취소됨',
+  '기병 돌격은 출발할 때의 위치를 기준으로 피해를 판정하며, 멈출 칸에 기물이 있으면 그 앞 빈 칸에서 멈춤',
+  '같은 칸에 여러 플레이어가 동시에 건설하면 모두 취소됨',
+  '중앙 특별 구역에는 건설할 수 없음',
+  '자원 칸: 게임마다 무작위로 8곳, 4명에게 대칭으로 놓임. 한 번 본 자원 칸은 계속 표시됨',
+  '보급소: 2점·내구도 5, 완공 후 매 턴 끝에 +1점. 자원 칸에는 보급소만 지을 수 있음',
+  '모집: 본진과 병영(3점·내구도 6)에서만, 건물 하나당 턴마다 1번. 기본 기물만 모집 가능 (특수 기물은 강화로)',
+  '같은 칸에 여러 플레이어가 동시에 모집하면 모두 취소되고, 모집 칸에 그 사이 다른 기물이 들어오면 실패 (포인트는 쓰지 않음)',
+  '행동을 3개 미만으로 제출해도 됨 (빈 슬롯은 행동 없음)',
+  '문명 중복 선택 허용',
+  '온라인 게임에서 빈 자리는 시작할 때 컴퓨터로 채움'
+];
+
+/* =============================== [CORE] =============================== */
+const Hex = {
+  DIRS: [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]],
+  key: (q,r) => q + ',' + r,
+  parse: k => k.split(',').map(Number),
+  dist(a,b){ const dq=a[0]-b[0], dr=a[1]-b[1]; return Math.max(Math.abs(dq),Math.abs(dr),Math.abs(dq+dr)); },
+  range(c,n){ const out=[]; for(let dq=-n;dq<=n;dq++){ for(let dr=Math.max(-n,-dq-n);dr<=Math.min(n,-dq+n);dr++) out.push([c[0]+dq,c[1]+dr]); } return out; },
+  neighbors(c){ return this.DIRS.map(d=>[c[0]+d[0],c[1]+d[1]]); },
+  toPixel(q,r,size){ return [size*Math.sqrt(3)*(q+r/2), size*1.5*r]; },
+  polygon(x,y,size){ const p=[]; for(let i=0;i<6;i++){ const a=Math.PI/180*(60*i-30); p.push((x+size*Math.cos(a)).toFixed(2)+','+(y+size*Math.sin(a)).toFixed(2)); } return p.join(' '); },
+  fmt(c){ return `${c[0]},${c[1]}`; }
+};
+
+const Board = {
+  create(radius){
+    const tiles=new Map();
+    for(const [q,r] of Hex.range([0,0],radius)) tiles.set(Hex.key(q,r),{q,r,key:Hex.key(q,r),zoneOwner:null,center:false});
+    CONFIG.startZone.corners.forEach((c,pid)=>{
+      for(const [q,r] of Hex.range(c,CONFIG.startZone.radius)){ const t=tiles.get(Hex.key(q,r)); if(t) t.zoneOwner=pid; }
+    });
+    for(const [q,r] of CONFIG.centerTiles){ const t=tiles.get(Hex.key(q,r)); if(t) t.center=true; }
+    return {radius,tiles};
+  },
+  // 4명에게 대칭인 자원 칸: 좌우 반전 M(q,r)=(-q-r,r)과 점대칭 P(q,r)=(-q,-r)으로 한 칸을 4칸으로 늘린다
+  rollResources(b,pairs){
+    const orbit=([q,r])=>[[q,r],[-q-r,r],[-q,-r],[q+r,-r]];
+    const out=new Set();
+    for(let tries=0; out.size<pairs*4 && tries<500; tries++){
+      const [q,r]=Hex.range([0,0],b.radius-1)[Math.floor(Math.random()*Hex.range([0,0],b.radius-1).length)];
+      const d=Hex.dist([q,r],[0,0]);
+      if(d<3 || d>8 || r===0 || r===-2*q) continue;
+      const o=orbit([q,r]).map(c=>Hex.key(c[0],c[1]));
+      if(o.some(k=>{ const t=b.tiles.get(k); return !t || t.zoneOwner!=null || t.center || out.has(k) || [...out].some(x=>Hex.dist(Hex.parse(x),Hex.parse(k))<2); })) continue;
+      o.forEach(k=>out.add(k));
+    }
+    return [...out];
+  },
+  zoneTiles(b,pid){ return [...b.tiles.values()].filter(t=>t.zoneOwner===pid).map(t=>t.key); }
+};
+
+const Hooks = {
+  apply(name,g,unit,base){
+    let v=base;
+    const civ=CIVS[g.players[unit.owner].civ];
+    if(civ && civ.hooks && civ.hooks[name]) v=civ.hooks[name](g,unit,v);
+    const ut=UNITS[unit.type];
+    if(ut.hooks && ut.hooks[name]) v=ut.hooks[name](g,unit,v);
+    const ce=g.centerEffect;
+    if(ce && ce.hooks && ce.hooks[name]) v=ce.hooks[name](g,unit,v,CenterZone.isActiveFor(g,unit.owner));
+    return v;
+  }
+};
+
+const Game = {
+  unit:(g,id)=>g.units.find(u=>u.alive&&u.id===id),
+  unitsOf:(g,pid)=>g.units.filter(u=>u.alive&&u.owner===pid),
+  unitAt:(g,k)=>g.units.find(u=>u.alive&&Hex.key(u.q,u.r)===k),
+  buildingAt:(g,k)=>(g.buildings||[]).find(b=>Hex.key(b.q,b.r)===k),
+  buildingsOf:(g,pid)=>(g.buildings||[]).filter(b=>b.owner===pid),
+  siteOf:(g,unitId)=>(g.buildings||[]).find(b=>b.done===false && b.techId===unitId),
+  humans:g=>g.players.filter(p=>p.type==='human'),
+  newUnit(g,owner,type,q,r){ const u={id:g.nextUnitId++,owner,type,q,r,hp:Rules.maxHp({type}),alive:true}; g.units.push(u); return u; }
+};
+
+const Log = {
+  add(g,e){ g.log.push(Object.assign({turn:g.turn,slot:null,pid:null,pub:null,priv:null},e)); },
+  textFor(e,viewer){ return (e.pid===viewer && e.priv) ? e.priv : e.pub; }
+};
+
+/* =============================== [RULES] ============================== */
+const Rules = {
+  maxHp(u){ const v=UNITS[u.type].stats.hp; return v==null?1:v; },
+  moveRange(g,u){ const s=UNITS[u.type].stats.move; return Hooks.apply('moveRange',g,u, s==null ? CONFIG.temp.defaultMoveRange : s); },
+  isCharge(u){ return UNITS[u.type].moveStyle==='charge'; },
+  attackDamage(g,u){ const v=UNITS[u.type].stats.atk; return v ? Hooks.apply('attack',g,u,v) : 0; },
+  attackRange(g,u){ const v=UNITS[u.type].stats.range; return v ? Hooks.apply('attackRange',g,u,v) : 0; },
+  canBuild(u){ return !!UNITS[u.type].canBuild; },
+  canAttack(u){ return !UNITS[u.type].moveStyle && !!UNITS[u.type].stats.atk; },
+  chargeDamage(g,u){ return Hooks.apply('chargeDamage',g,u, UNITS[u.type].chargeDamage||0); },
+  visionRange(g,u){ const v=UNITS[u.type].stats.vision; return Hooks.apply('vision',g,u, v==null?CONFIG.baseVision:v); },
+  unitsFor(civ){ return Object.values(UNITS).filter(u=>u.purchasable!==false && (!u.civ || u.civ===civ)); },
+  buildable(civ){ return Object.values(BUILDINGS).filter(b=>b.buildable!==false && (!b.civ || b.civ===civ)); },
+  specialOf(civ){ return Object.values(UNITS).find(u=>u.civ===civ && u.upgradeFrom); },
+  scoutRange(){ return CONFIG.scoutVision; },
+  dirBetween(a,b){ const d=Hex.dist(a,b); if(!d) return null; const dq=(b[0]-a[0])/d, dr=(b[1]-a[1])/d; return Hex.DIRS.find(x=>x[0]===dq&&x[1]===dr)||null; },
+  canBuildTile(g,k,type){ const t=g.board.tiles.get(k); if(!t || (!CONFIG.temp.buildOnCenter && t.center)) return false;
+    const res=(g.resources||[]).includes(k), B=BUILDINGS[type]; if(!B) return !res; return B.onResource ? res : !res; },
+  incomeOf(g,pid){ return Game.buildingsOf(g,pid).filter(b=>b.done!==false).reduce((s,b)=>s+(BUILDINGS[b.type].income||0),0); },
+};
+
+const Purchase = {
+  buy(p,type){ const c=UNITS[type].cost; if(p.points<c) return false; p.points-=c; p.reserve[type]=(p.reserve[type]||0)+1; return true; },
+  sellReserve(p,type){ if(!p.reserve[type]) return false; p.reserve[type]--; p.points+=UNITS[type].cost; return true; },
+  reserveCount(p){ return Object.values(p.reserve).reduce((a,b)=>a+b,0); },
+  canPlaceAt(g,pid,k){ const t=g.board.tiles.get(k); return !!t && t.zoneOwner===pid && !Game.unitAt(g,k) && !Game.buildingAt(g,k); },
+  hqOf(g,pid){ return (g.buildings||[]).find(b=>b.owner===pid && b.type==='hq'); },
+  placeHQ(g,pid,k){
+    if(!this.canPlaceAt(g,pid,k)) return null;
+    const old=this.hqOf(g,pid), [q,r]=Hex.parse(k);
+    if(old){ old.q=q; old.r=r; return old; }
+    const B=BUILDINGS.hq, b={id:g.nextBuildingId++,owner:pid,type:'hq',q,r,dur:B.durability,max:B.durability};
+    g.buildings.push(b); return b;
+  },
+  autoHQ(g,pid){
+    if(this.hqOf(g,pid)) return;
+    const c=CONFIG.startZone.corners[pid];
+    const free=Board.zoneTiles(g.board,pid).filter(k=>this.canPlaceAt(g,pid,k)).sort((a,b)=>Hex.dist(Hex.parse(a),c)-Hex.dist(Hex.parse(b),c));
+    if(free.length) this.placeHQ(g,pid,free[Math.min(free.length-1,Math.floor(Math.random()*3))]);
+  },
+  place(g,pid,type,k){
+    const p=g.players[pid];
+    if(!p.reserve[type] || !this.canPlaceAt(g,pid,k)) return null;
+    p.reserve[type]--;
+    const [q,r]=Hex.parse(k);
+    return Game.newUnit(g,pid,type,q,r);
+  },
+  relocate(g,u,k){ if(!this.canPlaceAt(g,u.owner,k)) return false; [u.q,u.r]=Hex.parse(k); return true; },
+  unplace(g,u){ g.units.splice(g.units.indexOf(u),1); const p=g.players[u.owner]; p.reserve[u.type]=(p.reserve[u.type]||0)+1; },
+  sellUnit(g,u){ g.units.splice(g.units.indexOf(u),1); g.players[u.owner].points+=UNITS[u.type].cost; },
+  autoPlace(g,pid){
+    this.autoHQ(g,pid);
+    const p=g.players[pid];
+    const free=shuffle(Board.zoneTiles(g.board,pid).filter(k=>!Game.unitAt(g,k)));
+    for(const type of Object.keys(p.reserve)) while(p.reserve[type]>0 && free.length) this.place(g,pid,type,free.pop());
+  }
+};
+
+const Vision = {
+  visibleSet(g,pid){
+    const s=new Set();
+    const addRange=(c,n)=>{ for(const [q,r] of Hex.range(c,n)){ const k=Hex.key(q,r); if(g.board.tiles.has(k)) s.add(k); } };
+    for(const u of Game.unitsOf(g,pid)) addRange([u.q,u.r],Rules.visionRange(g,u));
+    for(const b of Game.buildingsOf(g,pid)) addRange([b.q,b.r], b.done===false ? 0 : (BUILDINGS[b.type].vision||0));
+    for(const sc of this.activeScouts(g,pid)) for(const k of this.scoutTiles(g,sc)) s.add(k);
+    return s;
+  },
+  activeScouts(g,pid){ return (g.scouts||[]).filter(sc=>sc.pid===pid && sc.until>=g.turn); },
+  scoutTiles(g,sc){ return Hex.range([sc.q,sc.r],sc.radius).map(([q,r])=>Hex.key(q,r)).filter(k=>g.board.tiles.has(k)); },
+  update(g){ for(const p of g.players){ p.visible=this.visibleSet(g,p.id); p.visible.forEach(k=>p.explored.add(k)); } }
+};
+
+const CenterZone = {
+  keys(){ return CONFIG.centerTiles.map(([q,r])=>Hex.key(q,r)); },
+  roll(g){ g.centerEffect=CENTER_EFFECTS[Math.floor(Math.random()*CENTER_EFFECTS.length)]; },
+  occupiedTiles(g,pid){ return this.keys().filter(k=>{ const u=Game.unitAt(g,k); return u && u.owner===pid; }); },
+  isActiveFor(g,pid){ return this.occupiedTiles(g,pid).length>0; },
+  update(g,slot){
+    for(const p of g.players){
+      const now=this.isActiveFor(g,p.id);
+      if(now!==p.centerActive){
+        Log.add(g,{slot,pid:p.id,priv: now ? `중앙 특별 구역 점령 — ${g.centerEffect.name} 효과 적용 시작` : '중앙 특별 구역에서 벗어남 — 효과 적용 종료'});
+        p.centerActive=now;
+      }
+    }
+  }
+};
+
+// 계획 단계: 플레이어가 아는 정보(자기 시야)만으로 고를 수 있는 칸을 계산
+const Plan = {
+  positions(g,pid,plan){
+    const m=new Map(); Game.unitsOf(g,pid).forEach(u=>m.set(u.id,[u.q,u.r]));
+    for(const a of plan) if(a && a.type==='move' && m.has(a.unitId)) m.set(a.unitId,a.to);
+    return m;
+  },
+  plannedBuildTiles(plan){ return new Set(plan.filter(a=>a&&(a.type==='build'||a.type==='recruit')).map(a=>Hex.key(a.at[0],a.at[1]))); },
+  plannedCost(plan){ return plan.reduce((s,a)=>s+(!a?0:a.type==='build'?BUILDINGS[a.building].cost:a.type==='upgrade'?UNITS[a.into].upgradeCost:a.type==='recruit'?UNITS[a.unit].cost:0),0); },
+  canRecruitFrom(g,pid,plan,bid){
+    const b=(g.buildings||[]).find(x=>x.id===bid);
+    return !!b && b.owner===pid && b.done!==false && !!BUILDINGS[b.type].summon && !plan.some(a=>a&&a.type==='recruit'&&a.buildingId===bid);
+  },
+  recruitTargets(g,pid,plan,bid){
+    if(!this.canRecruitFrom(g,pid,plan,bid)) return [];
+    const b=g.buildings.find(x=>x.id===bid), pos=this.positions(g,pid,plan);
+    const own=new Set(); pos.forEach(p=>own.add(Hex.key(p[0],p[1])));
+    const pb=this.plannedBuildTiles(plan);
+    return Hex.neighbors([b.q,b.r]).map(([q,r])=>Hex.key(q,r))
+      .filter(k=>g.board.tiles.has(k) && !own.has(k) && !pb.has(k) && !this.knownBuildingAt(g,pid,k) && !this.knownEnemyAt(g,pid,k));
+  },
+  // 강화: 계획상 위치에서 완공된 자기 문명 전용 건물 바로 옆에 있는 보병
+  upgradeInfo(g,pid,plan,unitId){
+    const u=Game.unit(g,unitId), p=g.players[pid]; if(!u || u.owner!==pid) return null;
+    const S=Rules.specialOf(p.civ); if(!S || u.type!==S.upgradeFrom) return null;
+    if(plan.some(a=>a&&a.type==='upgrade'&&a.unitId===unitId)) return null;
+    const at=this.positions(g,pid,plan).get(unitId);
+    const b=Game.buildingsOf(g,pid).find(b=>b.type===S.requires && b.done!==false && Hex.dist([b.q,b.r],at)<=1);
+    if(!b) return null;
+    return {into:S.id,cost:S.upgradeCost,affordable:p.points-this.plannedCost(plan)>=S.upgradeCost};
+  },
+  knownBuildingAt(g,pid,k){ const b=Game.buildingAt(g,k); return b && (b.owner===pid || g.players[pid].visible.has(k)) ? b : null; },
+  knownEnemyAt(g,pid,k){ const u=Game.unitAt(g,k); return u && u.owner!==pid && g.players[pid].visible.has(k) ? u : null; },
+  moveTargets(g,pid,plan,unitId){
+    const u=Game.unit(g,unitId); if(!u) return [];
+    const pos=this.positions(g,pid,plan), from=pos.get(unitId);
+    const own=new Set(); pos.forEach((p,id)=>{ if(id!==unitId) own.add(Hex.key(p[0],p[1])); });
+    const pb=this.plannedBuildTiles(plan);
+    const blocked=k=>!!this.knownBuildingAt(g,pid,k) || pb.has(k);
+    const range=Rules.moveRange(g,u), out=[];
+    if(Rules.isCharge(u)){
+      for(const d of Hex.DIRS){
+        for(let i=1;i<=range;i++){
+          const k=Hex.key(from[0]+d[0]*i, from[1]+d[1]*i);
+          if(!g.board.tiles.has(k) || blocked(k)) break;
+          if(own.has(k) || this.knownEnemyAt(g,pid,k)) continue;   // 지나갈 수는 있지만 멈출 수는 없음
+          out.push(k);
+        }
+      }
+      return out;
+    }
+    return Hex.range(from,range).map(([q,r])=>Hex.key(q,r))
+      .filter(k=>g.board.tiles.has(k) && k!==Hex.key(from[0],from[1]) && !own.has(k) && !blocked(k) && !this.knownEnemyAt(g,pid,k));
+  },
+  // 돌격 미리보기: 지나가는 칸 목록
+  chargePath(from,to){ const d=Rules.dirBetween(from,to); if(!d) return []; const n=Hex.dist(from,to), out=[]; for(let i=1;i<=n;i++) out.push([from[0]+d[0]*i,from[1]+d[1]*i]); return out; },
+  canPlanBuild(g,pid,plan,unitId){
+    const u=Game.unit(g,unitId);
+    return !!u && u.owner===pid && Rules.canBuild(u) && !Game.siteOf(g,unitId) && !plan.some(a=>a&&a.type==='build'&&a.unitId===unitId);
+  },
+  // 이번 계획대로면 공사 중인 기술병이 움직이게 되는지
+  movesBuilder(g,plan,unitId){ return !!Game.siteOf(g,unitId) || plan.some(a=>a&&a.type==='build'&&a.unitId===unitId); },
+  buildTargets(g,pid,plan,unitId,type){
+    if(!this.canPlanBuild(g,pid,plan,unitId)) return [];
+    const u=Game.unit(g,unitId);
+    const pos=this.positions(g,pid,plan), from=pos.get(unitId);
+    const own=new Set(); pos.forEach(p=>own.add(Hex.key(p[0],p[1])));
+    const pb=this.plannedBuildTiles(plan);
+    return Hex.range(from,CONFIG.buildRange).map(([q,r])=>Hex.key(q,r))
+      .filter(k=>Rules.canBuildTile(g,k,type) && !own.has(k) && !pb.has(k) && !this.knownBuildingAt(g,pid,k) && !this.knownEnemyAt(g,pid,k));
+  },
+  // 공격 대상: 계획상 위치에서 사거리 안의 보이는 상대 기물·건물
+  attackTargets(g,pid,plan,unitId){
+    const u=Game.unit(g,unitId); if(!u || !Rules.canAttack(u)) return [];
+    const from=this.positions(g,pid,plan).get(unitId), rng=Rules.attackRange(g,u);
+    return Hex.range(from,rng).map(([q,r])=>Hex.key(q,r))
+      .filter(k=>{ if(!g.board.tiles.has(k)) return false; const e=this.knownEnemyAt(g,pid,k); if(e) return true; const b=this.knownBuildingAt(g,pid,k); return !!b && b.owner!==pid; });
+  },
+  attackTargetAt(g,pid,k){ const e=this.knownEnemyAt(g,pid,k); if(e) return {kind:'unit',id:e.id}; const b=this.knownBuildingAt(g,pid,k); return b&&b.owner!==pid?{kind:'building',id:b.id}:null; },
+  canDefend(g,pid,plan,unitId){ const u=Game.unit(g,unitId); return !!u && u.owner===pid && !plan.some(a=>a&&a.type==='defend'&&a.unitId===unitId); },
+  canScout(g,pid,plan,unitId){
+    const u=Game.unit(g,unitId);
+    return !!u && u.owner===pid && !plan.some(a=>a && a.type==='scout' && a.unitId===unitId);
+  }
+};
+
+// 피해 판정 (기병 돌격). 일반 공격이 생기면 여기에 함께 둔다.
+const Combat = {
+  /* 피해 목록을 한꺼번에 처리한다. hits: [{t, kind:'unit'|'building', dmg, pid, unit, src:'공격'|'돌격'}]
+     방어 중인 기물(g.defense[unitId]=방어 슬롯)은 피해를 받지 않고,
+     방어 슬롯과 같은 슬롯의 공격이면 공격한 기물이 그 피해를 그대로 받는다. */
+  apply(g,hits,slot){
+    const name=pid=>g.players[pid].name, uMap=new Map(), bMap=new Map(), back=new Map();
+    for(const h of hits){
+      if(h.kind==='unit' && g.defense && g.defense[h.t.id]!=null){
+        const same=g.defense[h.t.id]===slot;
+        Log.add(g,{slot,pid:h.t.owner,priv:`방어 성공: 내 ${UNITS[h.t.type].name} (${h.t.q},${h.t.r})이(가) ${name(h.pid)}의 ${h.src}을 막음${same?` — 같은 슬롯이라 피해 ${h.dmg}를 되돌림`:''}`});
+        Log.add(g,{slot,pid:h.pid,priv:`${h.src} 막힘: ${name(h.t.owner)}의 ${UNITS[h.t.type].name}이(가) 방어 중${same?` — 내 ${UNITS[h.unit.type].name}이(가) 피해 ${h.dmg}를 되돌려 받음`:''}`});
+        if(same){ const e=back.get(h.unit)||0; back.set(h.unit,e+h.dmg); }
+        continue;
+      }
+      const map=h.kind==='unit'?uMap:bMap, e=map.get(h.t)||{dmg:0,by:[]};
+      e.dmg+=h.dmg; e.by.push(h); map.set(h.t,e);
+    }
+    for(const [v,e] of uMap){
+      const at=`(${v.q},${v.r})`, died=this.damageUnit(g,v,e.dmg), att=[...new Set(e.by.map(b=>`${name(b.pid)}의 ${b.src}`))].join(', ');
+      Log.add(g,{slot,pid:v.owner,priv: died ? `내 ${UNITS[v.type].name} ${at}이(가) ${att}에 쓰러짐` : `내 ${UNITS[v.type].name} ${at}이(가) ${att}으로 피해 ${e.dmg} (남은 체력 ${v.hp})`});
+      e.by.forEach(b=>Log.add(g,{slot,pid:b.pid,priv:`${b.src} 명중: ${UNITS[b.unit.type].name} → ${name(v.owner)}의 ${UNITS[v.type].name} ${at}, 합계 피해 ${e.dmg}${died?' — 쓰러뜨림':''}`}));
+    }
+    for(const [bd,e] of bMap){
+      if(!g.buildings.includes(bd)) continue;
+      const B=BUILDINGS[bd.type], at=`(${bd.q},${bd.r})`, destroyed=this.damageBuilding(g,bd,e.dmg), att=[...new Set(e.by.map(b=>`${name(b.pid)}의 ${b.src}`))].join(', ');
+      Log.add(g,{slot,pid:bd.owner,priv: destroyed ? `내 ${B.name} ${at}이(가) ${att}에 파괴됨` : `내 ${B.name} ${at}이(가) ${att}으로 피해 ${e.dmg} (남은 내구도 ${bd.dur})`});
+      e.by.forEach(b=>Log.add(g,{slot,pid:b.pid,priv:`${b.src} 명중: ${name(bd.owner)}의 ${B.name} ${at}, 합계 피해 ${e.dmg}${destroyed?' — 파괴':''}`}));
+    }
+    for(const [u,dmg] of back){
+      if(!u.alive) continue;
+      const died=this.damageUnit(g,u,dmg);
+      Log.add(g,{slot,pid:u.owner,priv:`되돌려 받은 피해: 내 ${UNITS[u.type].name} (${u.q},${u.r}) 피해 ${dmg}${died?' — 쓰러짐':` (남은 체력 ${u.hp})`}`});
+    }
+  },
+  damageUnit(g,u,dmg){ u.hp=Math.max(0,u.hp-dmg); if(u.hp<=0) u.alive=false; return !u.alive; },
+  damageBuilding(g,b,dmg){ b.dur=Math.max(0,b.dur-dmg); if(b.dur<=0){ g.buildings.splice(g.buildings.indexOf(b),1); return true; } return false; }
+};
+
+const Collision = {
+  REASONS:{
+    invalid:'유효하지 않은 이동',
+    dead:'기물이 쓰러져 움직이지 못함',
+    out_of_range:'이동 범위를 벗어남 (앞선 이동이 취소된 경우 등)',
+    not_straight:'돌격은 한 방향 직선으로만 가능 (앞선 이동이 취소된 경우 등)',
+    blocked:'길이 막혀 움직이지 못함',
+    building:'목표 칸에 건물이 있음',
+    same_target:'여러 기물이 같은 칸으로 이동하려 함',
+    occupied:'목표 칸에 다른 기물이 있음',
+    swap:'두 기물이 서로 자리를 맞바꾸려 함'
+  },
+  resolveMoves(g,intents){
+    const canceled=[]; let active=[];
+    for(const it of intents){
+      if(it.forceCancel){ canceled.push(it); continue; }
+      const u=g.units.find(x=>x.id===it.unitId), tk=Hex.key(it.to[0],it.to[1]);
+      if(u && !u.alive){ canceled.push(Object.assign({},it,{unit:u,reason:'dead'})); continue; }
+      if(!u || u.owner!==it.pid || !g.board.tiles.has(tk)){ canceled.push(Object.assign({},it,{reason:'invalid'})); continue; }
+      const d=Hex.dist([u.q,u.r],it.to);
+      if(d===0 || d>Rules.moveRange(g,u)){ canceled.push(Object.assign({},it,{unit:u,reason:'out_of_range'})); continue; }
+      if(Game.buildingAt(g,tk)){ canceled.push(Object.assign({},it,{unit:u,reason:'building'})); continue; }
+      active.push(Object.assign({},it,{unit:u,fromKey:Hex.key(u.q,u.r),toKey:tk}));
+    }
+    const cnt={}; active.forEach(a=>cnt[a.toKey]=(cnt[a.toKey]||0)+1);
+    active=active.filter(a=>{ if(cnt[a.toKey]>1){ canceled.push(Object.assign(a,{reason:'same_target'})); return false; } return true; });
+    for(let changed=true; changed;){
+      changed=false;
+      const byUnit=new Map(active.map(a=>[a.unit.id,a])), drop=new Map();
+      for(const a of active){
+        const occ=Game.unitAt(g,a.toKey); if(!occ) continue;
+        const om=byUnit.get(occ.id);
+        if(!om) drop.set(a.unit.id,'occupied');
+        else if(om.toKey===a.fromKey){ drop.set(a.unit.id,'swap'); drop.set(om.unit.id,'swap'); }
+      }
+      if(drop.size){ changed=true; active=active.filter(a=>{ if(drop.has(a.unit.id)){ canceled.push(Object.assign(a,{reason:drop.get(a.unit.id)})); return false; } return true; }); }
+    }
+    for(const a of active){ a.unit.q=a.to[0]; a.unit.r=a.to[1]; }
+    return {applied:active,canceled};
+  }
+};
+
+const ActionHandlers = {
+  move:{
+    describe:(g,a)=>{ const u=g.units.find(x=>x.id===a.unitId); const nm=u?UNITS[u.type].name:'기물';
+      return u&&Rules.isCharge(u) ? `${nm} 돌격 (${Hex.fmt(a.from)}) → (${Hex.fmt(a.to)})` : `${nm} (${Hex.fmt(a.from)}) → (${Hex.fmt(a.to)})`; },
+    resolveSlot(g,list,slot){
+      const name=pid=>g.players[pid].name;
+      const intents=[], allHits=[], chargeNotes=[];
+      // 1) 돌격 경로와 피해를 슬롯 시작 위치 기준으로 계산
+      for(const x of list){
+        const u=Game.unit(g,x.act.unitId);
+        if(!u || u.owner!==x.pid || !Rules.isCharge(u)){ intents.push({pid:x.pid,unitId:x.act.unitId,to:x.act.to}); continue; }
+        const from=[u.q,u.r], to=x.act.to, n=Hex.dist(from,to), dir=Rules.dirBetween(from,to);
+        if(!dir || n>Rules.moveRange(g,u)){ intents.push({pid:x.pid,unitId:u.id,to,unit:u,forceCancel:true,reason:'not_straight'}); continue; }
+        const path=[], hits=[];
+        for(let i=1;i<=n;i++){
+          const c=[from[0]+dir[0]*i, from[1]+dir[1]*i], k=Hex.key(c[0],c[1]);
+          if(!g.board.tiles.has(k)) break;
+          const b=Game.buildingAt(g,k);
+          if(b){ if(b.owner!==u.owner) hits.push({b}); break; }
+          const o=Game.unitAt(g,k);
+          if(o && o.owner!==u.owner) hits.push({u:o});
+          path.push(c);
+        }
+        let idx=path.length-1;
+        while(idx>=0 && Game.unitAt(g,Hex.key(path[idx][0],path[idx][1]))) idx--;
+        const dest = idx>=0 ? path[idx] : null;
+        const dmg=Rules.chargeDamage(g,u);
+        for(const h of hits) allHits.push({t:h.u||h.b,kind:h.u?'unit':'building',dmg,pid:x.pid,unit:u,src:'돌격'});
+        chargeNotes.push({x,u,from,want:to,dest,hits,dmg});
+        if(dest) intents.push({pid:x.pid,unitId:u.id,to:dest,charge:true,want:to});
+        else intents.push({pid:x.pid,unitId:u.id,to,unit:u,forceCancel:true,reason:'blocked'});
+      }
+      // 2) 피해를 동시에 적용 (방어 반영)
+      Combat.apply(g,allHits,slot);
+      // 3) 이동 처리 (쓰러진 기물의 이동은 취소)
+      const res=Collision.resolveMoves(g,intents);
+      res.applied.forEach(a=>{
+        const short = a.charge && (a.want[0]!==a.to[0]||a.want[1]!==a.to[1]);
+        Log.add(g,{slot,pid:a.pid,pub:`${name(a.pid)}: 이동`,priv:`${a.charge?'돌격':'이동'} 완료: ${UNITS[a.unit.type].name} (${a.fromKey}) → (${a.toKey})${short?' · 길이 막혀 앞에서 멈춤':''}`});
+      });
+      res.canceled.forEach(a=>Log.add(g,{slot,pid:a.pid,pub:`${name(a.pid)}: 이동`,priv:`이동 취소: ${a.unit?UNITS[a.unit.type].name:'기물'} → (${Hex.fmt(a.to)}) · ${Collision.REASONS[a.reason]}`}));
+    }
+  },
+  scout:{
+    describe:(g,a)=>{ const u=g.units.find(x=>x.id===a.unitId); const at=a.at||(u?[u.q,u.r]:null); return `${u?UNITS[u.type].name:'기물'} (${at?Hex.fmt(at):'?'}) 자리에서 정찰`; },
+    resolveSlot(g,list,slot){
+      list.forEach(x=>{
+        const u=Game.unit(g,x.act.unitId), pub=`${g.players[x.pid].name}: 정찰`;
+        if(u && u.owner===x.pid){
+          const until=g.turn+CONFIG.scoutDuration;
+          g.scouts.push({pid:x.pid,q:u.q,r:u.r,radius:Rules.scoutRange(),until});
+          Log.add(g,{slot,pid:x.pid,pub,priv:`정찰 완료: (${u.q},${u.r}) 주변 ${Rules.scoutRange()}칸 — 턴 ${until}이 끝날 때까지 보임`});
+        } else Log.add(g,{slot,pid:x.pid,pub,priv:'정찰 실패: 대상 기물이 없음'});
+      });
+    }
+  },
+  build:{
+    describe:(g,a)=>{ const u=g.units.find(x=>x.id===a.unitId); return `${BUILDINGS[a.building].name} 건설 (${Hex.fmt(a.at)}) — ${u?UNITS[u.type].name:'기물'}`; },
+    resolveSlot(g,list,slot){
+      const byTile=new Map();
+      list.forEach(x=>{ const k=Hex.key(x.act.at[0],x.act.at[1]); if(!byTile.has(k)) byTile.set(k,[]); byTile.get(k).push(x); });
+      for(const [k,arr] of byTile){
+        const fail=(x,why)=>Log.add(g,{slot,pid:x.pid,pub:`${g.players[x.pid].name}: 건설`,priv:`건설 실패: ${BUILDINGS[x.act.building].name} (${k}) · ${why}`});
+        if(arr.length>1){ arr.forEach(x=>fail(x,'여러 플레이어가 같은 칸에 동시에 건설하려 함')); continue; }
+        const x=arr[0], B=BUILDINGS[x.act.building], u=Game.unit(g,x.act.unitId), p=g.players[x.pid];
+        if(!B || B.buildable===false) { fail(x,'지을 수 없는 건물'); continue; }
+        if(B.civ && B.civ!==p.civ){ fail(x,'다른 문명의 건물'); continue; }
+        if(u && !Rules.canBuild(u)){ fail(x,`${UNITS[u.type].name}은(는) 건설할 수 없음`); continue; }
+        if(u && Game.siteOf(g,u.id)){ fail(x,'이 기술병은 이미 다른 곳을 짓는 중'); continue; }
+        if(!u || u.owner!==x.pid){ fail(x,'건설할 기물이 없음'); continue; }
+        if(Hex.dist([u.q,u.r],x.act.at)>CONFIG.buildRange){ fail(x,'기물이 그 칸 옆에 있지 않음'); continue; }
+        if(!Rules.canBuildTile(g,k,B.id)){ fail(x,B.onResource?'자원 칸이 아님':'자원 칸에는 보급소만 지을 수 있음'); continue; }
+        if(Game.unitAt(g,k)){ fail(x,'칸에 기물이 있음'); continue; }
+        if(Game.buildingAt(g,k)){ fail(x,'칸에 이미 건물이 있음'); continue; }
+        if(p.points<B.cost){ fail(x,`포인트 부족 (${B.cost}점 필요)`); continue; }
+        p.points-=B.cost;
+        const completeAt=g.turn+CONFIG.buildTurns;
+        g.buildings.push({id:g.nextBuildingId++,owner:x.pid,type:B.id,q:x.act.at[0],r:x.act.at[1],dur:B.durability,max:B.durability,
+          done:false,techId:u.id,techPos:[u.q,u.r],completeAt,paid:B.cost});
+        Log.add(g,{slot,pid:x.pid,pub:`${p.name}: 건설`,priv:`공사 시작: ${B.name} (${k}) · ${B.cost}점 사용 · 기술병이 턴 ${completeAt}이 끝날 때까지 움직이지 않으면 완공`});
+      }
+    }
+  },
+  recruit:{
+    describe:(g,a)=>{ const b=(g.buildings||[]).find(x=>x.id===a.buildingId); return `${b?BUILDINGS[b.type].name:'건물'}에서 ${UNITS[a.unit].name} 모집 (${Hex.fmt(a.at)}) · ${UNITS[a.unit].cost}점`; },
+    resolveSlot(g,list,slot){
+      const byTile=new Map();
+      list.forEach(x=>{ const k=Hex.key(x.act.at[0],x.act.at[1]); if(!byTile.has(k)) byTile.set(k,[]); byTile.get(k).push(x); });
+      for(const [k,arr] of byTile){
+        const fail=(x,why)=>Log.add(g,{slot,pid:x.pid,pub:`${g.players[x.pid].name}: 모집`,priv:`모집 실패: ${UNITS[x.act.unit].name} (${k}) · ${why}`});
+        if(arr.length>1){ arr.forEach(x=>fail(x,'여러 플레이어가 같은 칸에 동시에 모집하려 함')); continue; }
+        const x=arr[0], p=g.players[x.pid], U=UNITS[x.act.unit], b=(g.buildings||[]).find(z=>z.id===x.act.buildingId);
+        if(!b || b.owner!==x.pid || b.done===false || !BUILDINGS[b.type].summon){ fail(x,'모집할 건물이 없음'); continue; }
+        if(g.recruitUsed[b.id]){ fail(x,'이 건물은 이번 턴에 이미 모집함'); continue; }
+        if(!Rules.unitsFor(p.civ).includes(U)){ fail(x,'모집할 수 없는 기물'); continue; }
+        if(Hex.dist([b.q,b.r],x.act.at)!==1 || !g.board.tiles.has(k)){ fail(x,'건물 바로 옆 칸이 아님'); continue; }
+        if(Game.unitAt(g,k) || Game.buildingAt(g,k)){ fail(x,'칸이 비어 있지 않음'); continue; }
+        if(p.points<U.cost){ fail(x,`포인트 부족 (${U.cost}점 필요)`); continue; }
+        p.points-=U.cost;
+        Game.newUnit(g,x.pid,U.id,x.act.at[0],x.act.at[1]); g.recruitUsed[b.id]=true;
+        Log.add(g,{slot,pid:x.pid,pub:`${p.name}: 모집`,priv:`모집 완료: ${BUILDINGS[b.type].name} 옆 (${k})에 ${U.name} · ${U.cost}점 사용`});
+      }
+    }
+  },
+  upgrade:{
+    describe:(g,a)=>`보병 → ${UNITS[a.into].name} 강화 (${UNITS[a.into].upgradeCost}점)`,
+    resolveSlot(g,list,slot){
+      list.forEach(x=>{
+        const p=g.players[x.pid], S=UNITS[x.act.into], u=Game.unit(g,x.act.unitId);
+        const fail=why=>Log.add(g,{slot,pid:x.pid,pub:`${p.name}: 강화`,priv:`강화 실패: ${why}`});
+        if(!u || u.owner!==x.pid) return fail('기물이 없음');
+        if(!S || S.civ!==p.civ || u.type!==S.upgradeFrom) return fail('강화할 수 없는 기물');
+        const b=Game.buildingsOf(g,x.pid).find(b=>b.type===S.requires && b.done!==false && Hex.dist([b.q,b.r],[u.q,u.r])<=1);
+        if(!b) return fail(`${BUILDINGS[S.requires].name} 바로 옆에 있지 않음 (완공된 건물만 가능)`);
+        if(p.points<S.upgradeCost) return fail(`포인트 부족 (${S.upgradeCost}점 필요)`);
+        p.points-=S.upgradeCost;
+        const lost=Rules.maxHp(u)-u.hp; u.type=S.id; u.hp=Math.max(1,Rules.maxHp(u)-lost);
+        Log.add(g,{slot,pid:x.pid,pub:`${p.name}: 강화`,priv:`강화 완료: 보병 (${u.q},${u.r}) → ${S.name} · ${S.upgradeCost}점 사용 · 체력 ${u.hp}/${Rules.maxHp(u)}`});
+      });
+    }
+  },
+  attack:{
+    describe:(g,a)=>{ const u=g.units.find(x=>x.id===a.unitId); const t=a.target&&a.target.kind==='building'?(g.buildings.find(b=>b.id===a.target.id)):g.units.find(x=>a.target&&x.id===a.target.id);
+      const tn=t?(a.target.kind==='building'?BUILDINGS[t.type].name:UNITS[t.type].name):'대상';
+      return `${u?UNITS[u.type].name:'기물'} → (${Hex.fmt(a.at)}) ${tn} 공격`; },
+    resolveSlot(g,list,slot){
+      const name=pid=>g.players[pid].name, allHits=[];
+      const fail=(x,why)=>Log.add(g,{slot,pid:x.pid,pub:`${name(x.pid)}: 공격`,priv:`공격 실패: ${why}`});
+      // 슬롯 시작 위치 기준으로 모두 계산한 뒤 동시에 적용
+      for(const x of list){
+        const u=Game.unit(g,x.act.unitId), tg=x.act.target||{};
+        if(!u || u.owner!==x.pid){ fail(x,'공격할 기물이 없음'); continue; }
+        if(!Rules.canAttack(u)){ fail(x,`${UNITS[u.type].name}은(는) 공격할 수 없음`); continue; }
+        const t = tg.kind==='building' ? g.buildings.find(b=>b.id===tg.id) : Game.unit(g,tg.id);
+        if(!t){ fail(x,'대상이 이미 없음'); continue; }
+        if(t.owner===x.pid){ fail(x,'자기 기물은 공격할 수 없음'); continue; }
+        if(Hex.dist([u.q,u.r],[t.q,t.r])>Rules.attackRange(g,u)){ fail(x,`${UNITS[u.type].name} (${u.q},${u.r}) — 대상이 사거리 밖에 있음`); continue; }
+        Log.add(g,{slot,pid:x.pid,pub:`${name(x.pid)}: 공격`});
+        allHits.push({t,kind:tg.kind==='building'?'building':'unit',dmg:Rules.attackDamage(g,u),pid:x.pid,unit:u,src:'공격'});
+      }
+      Combat.apply(g,allHits,slot);
+    }
+  },
+  defend:{
+    describe:(g,a)=>{ const u=g.units.find(x=>x.id===a.unitId); return `${u?UNITS[u.type].name:'기물'} (${u?Hex.fmt([u.q,u.r]):'?'}) 방어`; },
+    // 방어 효과는 턴 시작 때 Defense.prepare 가 이미 걸어 둔다. 여기서는 기록만 한다.
+    resolveSlot(g,list,slot){ list.forEach(x=>Log.add(g,{slot,pid:x.pid,pub:`${g.players[x.pid].name}: 방어`})); }
+  }
+};
+
+// 공사: 기술병이 움직이거나 쓰러지면 취소, 정해진 턴이 끝나면 완공
+const Construction = {
+  cancel(g,b,why,slot){
+    g.buildings.splice(g.buildings.indexOf(b),1);
+    g.players[b.owner].points+=b.paid||0;
+    Log.add(g,{slot,pid:b.owner,priv:`공사 취소: ${BUILDINGS[b.type].name} (${b.q},${b.r}) · ${why} · ${b.paid||0}점 돌려받음`});
+  },
+  onUnitMoved(g,u,slot){ const b=Game.siteOf(g,u.id); if(b) this.cancel(g,b,'기술병이 움직임',slot); },
+  checkSlot(g,slot){
+    for(const b of (g.buildings||[]).filter(x=>x.done===false)){
+      const t=g.units.find(u=>u.id===b.techId);
+      if(!t || !t.alive) this.cancel(g,b,'기술병이 쓰러짐',slot);
+      else if(t.q!==b.techPos[0] || t.r!==b.techPos[1]) this.cancel(g,b,'기술병이 움직임',slot);
+    }
+  },
+  endTurn(g){
+    for(const b of (g.buildings||[]).filter(x=>x.done===false && g.turn>=x.completeAt)){
+      b.done=true;
+      Log.add(g,{slot:null,pid:b.owner,priv:`완공: ${BUILDINGS[b.type].name} (${b.q},${b.r}) · 내구도 ${b.dur}/${b.max}`});
+    }
+  }
+};
+
+// 방어: 제출된 계획에서 이번 턴 방어하는 기물과 그 슬롯을 턴 시작 때 정한다
+const Defense = {
+  prepare(g){
+    g.defense={};
+    for(const p of g.players) (g.plans[p.id]||[]).forEach((a,i)=>{
+      if(!a || a.type!=='defend') return;
+      const u=Game.unit(g,a.unitId);
+      if(u && u.owner===p.id && g.defense[u.id]==null){ g.defense[u.id]=i+1; Log.add(g,{slot:i+1,pid:p.id,priv:`방어: ${UNITS[u.type].name} (${u.q},${u.r}) — 이번 턴 피해 무효, 슬롯 ${i+1} 공격은 되돌림`}); }
+    });
+  }
+};
+
+// 승리: 본진이 파괴되면 탈락, 마지막 한 명이 승리
+const Victory = {
+  alive(g){ return g.players.filter(p=>!p.eliminated); },
+  check(g,slot){
+    const lost=this.alive(g).filter(p=>!Purchase.hqOf(g,p.id));
+    for(const p of lost){
+      p.eliminated=true; p.elimTurn=g.turn;
+      g.units.forEach(u=>{ if(u.owner===p.id) u.alive=false; });
+      g.buildings=g.buildings.filter(b=>b.owner!==p.id);
+      Log.add(g,{slot,pub:`${p.name}의 본진이 파괴되었습니다. ${p.name} 탈락.`});
+    }
+    const left=this.alive(g);
+    if(left.length<=1 && !g.over){
+      g.over={winner:left.length?left[0].id:-1,turn:g.turn};
+      Log.add(g,{slot,pub: left.length?`${left[0].name} 승리!`:'모든 본진이 동시에 파괴되어 무승부입니다.'});
+    }
+    return !!g.over;
+  }
+};
+
+const Resolver = {
+  resolveTurn(g){
+    Defense.prepare(g);
+    g.recruitUsed={};
+    for(let s=0;s<CONFIG.actionsPerTurn;s++){
+      const slot=s+1;
+      const all=g.players.map(p=>({pid:p.id,act:(g.plans[p.id]||[])[s]})).filter(x=>x.act);
+      g.players.forEach(p=>{ if(!p.eliminated && !(g.plans[p.id]||[])[s]) Log.add(g,{slot,pid:p.id,pub:`${p.name}: 행동 없음`,priv:'행동 없음'}); });
+      const byType={}; all.forEach(x=>(byType[x.act.type]=byType[x.act.type]||[]).push(x));
+      for(const type of CONFIG.resolveOrder){
+        if(!byType[type]) continue;
+        const h=ActionHandlers[type];
+        if(h && h.resolveSlot) h.resolveSlot(g,byType[type],slot);
+        else byType[type].forEach(x=>Log.add(g,{slot,pid:x.pid,pub:`${g.players[x.pid].name}: ${ACTIONS[type].name} (미구현)`,priv:`${ACTIONS[type].name}: 미구현 행동이라 처리하지 않음`}));
+      }
+      Construction.checkSlot(g,slot);
+      Vision.update(g);
+      CenterZone.update(g,slot);
+      if(Victory.check(g,slot)) break;
+    }
+    g.defense={};
+  }
+};
+
+const AI = {
+  pickCiv(){ return pick(Object.keys(CIVS)); },
+  setup(g,pid){
+    const p=g.players[pid];
+    for(let guard=0; guard<100; guard++){
+      if(guard===0 && Math.random()<0.7){ Purchase.buy(p,'technician'); continue; }   // 대개 기술병 하나로 시작
+      if(p.points<=4 && Math.random()<0.7) break;          // 건설용 포인트를 남김
+      const opts=Rules.unitsFor(p.civ).filter(t=>t.cost<=p.points).map(t=>t.id);
+      if(!opts.length) break;
+      Purchase.buy(p,pick(opts));
+    }
+    Purchase.autoPlace(g,pid);
+  },
+  plan(g,pid){
+    const plan=[], p=g.players[pid];
+    if(p.eliminated) return plan;
+    for(let s=0;s<CONFIG.actionsPerTurn;s++){
+      const units=Game.unitsOf(g,pid);
+      if(!units.length){ const U=Rules.unitsFor(p.civ).filter(U=>U.cost<=p.points-Plan.plannedCost(plan)); const sp=[]; Game.buildingsOf(g,pid).forEach(b=>Plan.recruitTargets(g,pid,plan,b.id).forEach(k=>sp.push([b,k])));
+        if(U.length&&sp.length){ const [b,k]=pick(sp); plan.push({type:'recruit',buildingId:b.id,unit:pick(U).id,at:Hex.parse(k)}); continue; } break; }
+      const roll=Math.random();
+      if(roll<0.15){
+        const c=units.filter(u=>Plan.canScout(g,pid,plan,u.id));
+        if(c.length){ const su=pick(c); plan.push({type:'scout',unitId:su.id,at:Plan.positions(g,pid,plan).get(su.id)}); continue; }
+      } else if(roll<0.28){
+        const afford=Rules.buildable(p.civ).filter(B=>B.cost<=p.points-Plan.plannedCost(plan));
+        const builders=units.filter(u=>Plan.canPlanBuild(g,pid,plan,u.id));
+        if(afford.length && builders.length){ const bu=pick(builders), B=pick(afford), t=Plan.buildTargets(g,pid,plan,bu.id,B.id);
+          if(t.length){ plan.push({type:'build',unitId:bu.id,building:B.id,at:Hex.parse(pick(t)),from:Plan.positions(g,pid,plan).get(bu.id)}); continue; } }
+      }
+      if(BUILDINGS.depot.cost<=p.points-Plan.plannedCost(plan)){
+        const opts=[]; units.filter(u=>Plan.canPlanBuild(g,pid,plan,u.id)).forEach(u=>Plan.buildTargets(g,pid,plan,u.id,'depot').forEach(k=>opts.push([u,k])));
+        if(opts.length && Math.random()<0.9){ const [bu,k]=pick(opts); plan.push({type:'build',unitId:bu.id,building:'depot',at:Hex.parse(k),from:Plan.positions(g,pid,plan).get(bu.id)}); continue; }
+      }
+      const left=p.points-Plan.plannedCost(plan), opts=Rules.unitsFor(p.civ).filter(U=>U.cost<=left);
+      if(opts.length && Math.random()<0.45){
+        const spots=[]; Game.buildingsOf(g,pid).forEach(b=>Plan.recruitTargets(g,pid,plan,b.id).forEach(k=>spots.push([b,k])));
+        if(spots.length){ const [b,k]=pick(spots); plan.push({type:'recruit',buildingId:b.id,unit:pick(opts).id,at:Hex.parse(k)}); continue; }
+      }
+      const upg=units.map(u=>[u,Plan.upgradeInfo(g,pid,plan,u.id)]).filter(([,i])=>i&&i.affordable);
+      if(upg.length && Math.random()<0.7){ const [u,i]=pick(upg); plan.push({type:'upgrade',unitId:u.id,into:i.into}); continue; }
+      const threatened=units.filter(u=>Plan.canDefend(g,pid,plan,u.id) && Hex.range([u.q,u.r],2).some(([q,r])=>Plan.knownEnemyAt(g,pid,Hex.key(q,r))));
+      if(threatened.length && Math.random()<0.3){ plan.push({type:'defend',unitId:pick(threatened).id}); continue; }
+      if(Math.random()<0.8){
+        const cand=[]; units.forEach(au=>Plan.attackTargets(g,pid,plan,au.id).forEach(k=>cand.push([au,k])));
+        if(cand.length){ const [au,k]=pick(cand); plan.push({type:'attack',unitId:au.id,target:Plan.attackTargetAt(g,pid,k),at:Hex.parse(k),from:Plan.positions(g,pid,plan).get(au.id)}); continue; }
+      }
+      const movers=units.filter(x=>!Plan.movesBuilder(g,plan,x.id)); if(!movers.length) continue;
+      const u=pick(movers), from=Plan.positions(g,pid,plan).get(u.id);
+      const targets=Plan.moveTargets(g,pid,plan,u.id).map(Hex.parse);
+      if(!targets.length) continue;
+      let to;
+      let goal=[0,0];
+      if(Rules.canBuild(u)){ const free=(g.resources||[]).map(Hex.parse).filter(c=>!Game.buildingAt(g,Hex.key(c[0],c[1])));
+        if(free.length){ free.sort((a,b)=>Hex.dist(a,from)-Hex.dist(b,from)); goal=free[0]; } }
+      if(Math.random()<0.75){ targets.sort((a,b)=>Hex.dist(a,goal)-Hex.dist(b,goal)); to=targets[0]; }
+      else to=pick(targets);
+      plan.push({type:'move',unitId:u.id,from,to});
+    }
+    return plan;
+  }
+};
+
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function rid(){ return Math.random().toString(36).slice(2,10); }
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function storeGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function storeSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function storeDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+/* 게임 생성·진행 공용 규칙 (한 기기와 온라인이 함께 사용) */
+const Setup = {
+  createGame(seats){
+    const g={ board:Board.create(CONFIG.boardRadius), units:[], nextUnitId:1, buildings:[], nextBuildingId:1, turn:0, phase:'civ', centerEffect:null, plans:{}, log:[], scouts:[],
+      players:seats.map((s,i)=>({id:i,name:(s.name||'').trim()||`플레이어 ${i+1}`,type:s.type,uid:s.uid||null,color:PLAYER_COLORS[i],
+        civ:null,points:CONFIG.startPoints,reserve:{},explored:new Set(),visible:new Set(),centerActive:false})) };
+    g.players.filter(p=>p.type==='ai').forEach(p=>p.civ=AI.pickCiv());
+    return g;
+  },
+  aiSetupAll(g){ g.players.filter(p=>p.type==='ai').forEach(p=>AI.setup(g,p.id)); },
+  applyPlacement(g,pid,list,hq){
+    const p=g.players[pid];
+    g.units=g.units.filter(u=>u.owner!==pid);
+    g.buildings=g.buildings.filter(b=>b.owner!==pid);
+    if(hq) Purchase.placeHQ(g,pid,Hex.key(Math.trunc(Number(hq.q)),Math.trunc(Number(hq.r))));
+    p.reserve={}; p.points=CONFIG.startPoints;
+    const used=new Set();
+    for(const it of (Array.isArray(list)?list:[]).slice(0,100)){
+      const t=UNITS[it&&it.type], q=Math.trunc(Number(it&&it.q)), r=Math.trunc(Number(it&&it.r)), k=Hex.key(q,r), tile=g.board.tiles.get(k);
+      if(!t || t.purchasable===false || (t.civ && t.civ!==p.civ) || !tile || tile.zoneOwner!==pid || used.has(k) || p.points<t.cost) continue;
+      p.points-=t.cost; used.add(k);
+      if(Game.buildingAt(g,k)) continue;
+      Game.newUnit(g,pid,t.id,q,r);
+    }
+    Purchase.autoHQ(g,pid);
+  },
+  sanitizePlan(g,pid,actions){
+    const out=[], int=v=>Math.trunc(Number(v)), pt=a=>Array.isArray(a)&&a.length===2?[int(a[0]),int(a[1])]:null;
+    for(const a of (Array.isArray(actions)?actions:[]).slice(0,CONFIG.actionsPerTurn)){
+      if(!a || !ACTIONS[a.type] || !ACTIONS[a.type].implemented) continue;
+      const unitId=int(a.unitId);
+      if(a.type==='move' && pt(a.to)) out.push({type:'move',unitId,from:pt(a.from)||[0,0],to:pt(a.to)});
+      else if(a.type==='scout') out.push({type:'scout',unitId,at:pt(a.at)});
+      else if(a.type==='defend') out.push({type:'defend',unitId});
+      else if(a.type==='upgrade' && UNITS[a.into] && UNITS[a.into].upgradeFrom) out.push({type:'upgrade',unitId,into:a.into});
+      else if(a.type==='recruit' && UNITS[a.unit] && pt(a.at)) out.push({type:'recruit',buildingId:int(a.buildingId),unit:a.unit,at:pt(a.at)});
+      else if(a.type==='build' && BUILDINGS[a.building] && BUILDINGS[a.building].buildable!==false && pt(a.at)) out.push({type:'build',unitId,building:a.building,at:pt(a.at),from:pt(a.from)});
+      else if(a.type==='attack' && a.target && (a.target.kind==='unit'||a.target.kind==='building') && pt(a.at)) out.push({type:'attack',unitId,target:{kind:a.target.kind,id:int(a.target.id)},at:pt(a.at),from:pt(a.from)});
+    }
+    return out;
+  },
+  begin(g){
+    g.phase='game'; g.turn=1;
+    CenterZone.roll(g);
+    if(!g.resources || !g.resources.length) g.resources=Board.rollResources(g.board,CONFIG.resourcePairs);
+    Vision.update(g);
+    const ce=g.centerEffect;
+    Log.add(g,{pub:`게임 시작. 중앙 특별 구역 효과: ${ce.name} (${ce.kind==='buff'?'버프':'디버프'})`});
+  },
+  resolveTurn(g){
+    Resolver.resolveTurn(g);
+    Construction.endTurn(g);
+    for(const p of g.players){
+      if(p.eliminated) continue;
+      const inc=Rules.incomeOf(g,p.id);
+      if(inc>0){ p.points+=inc; Log.add(g,{slot:null,pid:p.id,priv:`보급소 수입 +${inc}점 (보유 ${p.points}점)`}); }
+    }
+    g.turn++;
+    g.scouts=(g.scouts||[]).filter(sc=>sc.until>=g.turn);
+    g.units=g.units.filter(u=>u.alive);
+    Vision.update(g);
+  },
+  serialize(g){
+    return { units:g.units, nextUnitId:g.nextUnitId, buildings:g.buildings, nextBuildingId:g.nextBuildingId, turn:g.turn, phase:g.phase,
+      centerEffectId:g.centerEffect?g.centerEffect.id:null, log:g.log.slice(-200), scouts:g.scouts||[], resources:g.resources||[],
+      players:g.players.map(p=>({id:p.id,name:p.name,type:p.type,uid:p.uid,color:p.color,civ:p.civ,points:p.points,reserve:p.reserve,explored:[...p.explored],centerActive:p.centerActive,eliminated:!!p.eliminated,elimTurn:p.elimTurn||null})), over:g.over||null };
+  },
+  deserialize(s){
+    const g={ board:Board.create(CONFIG.boardRadius), units:s.units.map(u=>Object.assign({},u)), nextUnitId:s.nextUnitId,
+      buildings:(s.buildings||[]).map(b=>Object.assign({},b)), nextBuildingId:s.nextBuildingId||1, turn:s.turn, phase:s.phase,
+      centerEffect:CENTER_EFFECTS.find(e=>e.id===s.centerEffectId)||null, plans:{}, log:s.log.map(e=>Object.assign({},e)), scouts:(s.scouts||[]).map(x=>Object.assign({},x)), resources:(s.resources||[]).slice(),
+      over:s.over||null,
+      players:s.players.map(p=>Object.assign({},p,{reserve:Object.assign({},p.reserve),explored:new Set(p.explored),visible:new Set()})) };
+    if(g.phase==='game') Vision.update(g);
+    return g;
+  },
+  // 한 플레이어에게 보낼 상태: 시야 밖의 상대 기물·건물, 남의 정찰 지역과 비공개 기록은 빼고 보낸다.
+  viewState(s,seat){
+    const out=clone(s);
+    let vis=null;
+    if(s.phase==='game') vis=this.deserialize(s).players[seat].visible;
+    const see=o=>o.owner===seat || (vis && vis.has(Hex.key(o.q,o.r)));
+    out.units=out.units.filter(see);
+    out.buildings=(out.buildings||[]).filter(see);
+    out.scouts=(out.scouts||[]).filter(x=>x.pid===seat);
+    out.log=out.log.filter(e=>e.pid===seat||e.pub).map(e=>e.pid===seat?e:Object.assign({},e,{priv:null}));
+    out.players=out.players.map(p=>p.id===seat?p:Object.assign({},p,{explored:[],reserve:{}}));
+    return out;
+  }
+};
+
+/* =============================== [NET] ================================ */
+/* WebRTC P2P. 호스트 기기가 규칙을 처리하고, 참가자는 자기 제출만 보낸다.
+   연결 방법 두 가지
+   - 방 코드: PeerJS 공개 서버를 처음 연결할 때만 쓴다. 게임 데이터는 기기끼리 직접 오간다.
+   - 코드 직접 교환: 서버 없이 초대 코드·응답 코드를 복사해서 주고받는다. */
+
+// 큰 메시지를 조각내서 보내고 받아서 다시 합치는 연결 래퍼
+function makeLink(rawSend, rawClose){
+  const link={ id:rid(), onmsg:null, onclose:null, buf:{}, dead:false,
+    send(obj){ if(this.dead) return; const s=JSON.stringify(obj), CH=CONFIG.net.chunk, n=Math.max(1,Math.ceil(s.length/CH)), mid=rid();
+      try{ for(let i=0;i<n;i++) rawSend(JSON.stringify({c:mid,i,n,d:s.slice(i*CH,(i+1)*CH)})); }catch(e){ this.closed(); } },
+    receive(raw){
+      let m; try{ m=JSON.parse(raw); }catch(e){ return; }
+      if(!m || !m.c) return;
+      const b=this.buf[m.c]||(this.buf[m.c]={n:m.n,parts:[],got:0});
+      if(b.parts[m.i]==null){ b.parts[m.i]=m.d; b.got++; }
+      if(b.got===b.n){ delete this.buf[m.c]; let o; try{ o=JSON.parse(b.parts.join('')); }catch(e){ return; } if(this.onmsg) this.onmsg(o); }
+    },
+    closed(){ if(this.dead) return; this.dead=true; if(this.onclose) this.onclose(); },
+    close(){ try{ rawClose(); }catch(e){} this.closed(); }
+  };
+  return link;
+}
+function wrapPeerConn(conn){
+  const link=makeLink(s=>{ if(conn.open) conn.send(s); }, ()=>conn.close());
+  conn.on('data',d=>link.receive(typeof d==='string'?d:String(d)));
+  conn.on('close',()=>link.closed());
+  conn.on('error',()=>link.closed());
+  return link;
+}
+function wrapDC(dc,pc){
+  const link=makeLink(s=>{ if(dc.readyState==='open') dc.send(s); }, ()=>{ dc.close(); pc.close(); });
+  dc.onmessage=e=>link.receive(e.data);
+  dc.onclose=()=>link.closed();
+  pc.addEventListener('connectionstatechange',()=>{ if(pc.connectionState==='failed'||pc.connectionState==='closed') link.closed(); });
+  return link;
+}
+let peerLoading=null;
+function loadPeerJS(){
+  if(window.Peer) return Promise.resolve();
+  if(peerLoading) return peerLoading;
+  peerLoading=new Promise((res,rej)=>{
+    const s=document.createElement('script'); s.src=CONFIG.net.peerjsUrl; s.async=true;
+    s.onload=()=>res(); s.onerror=()=>{ peerLoading=null; rej(new Error('연결 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인하거나 코드 직접 교환 방식을 쓰세요.')); };
+    document.head.appendChild(s);
+  });
+  return peerLoading;
+}
+function peerError(e){
+  const t=e&&e.type;
+  if(t==='peer-unavailable') return '그 코드의 방이 없거나 호스트가 화면을 닫았습니다.';
+  if(t==='unavailable-id') return '이 방 코드가 아직 사용 중입니다. 30초쯤 뒤 다시 시도하세요.';
+  if(t==='network'||t==='server-error'||t==='socket-error'||t==='socket-closed') return '연결 서버에 닿지 못했습니다. 인터넷 연결을 확인하거나 코드 직접 교환 방식을 쓰세요.';
+  if(t==='browser-incompatible') return '이 브라우저는 WebRTC를 지원하지 않습니다.';
+  return (e&&e.message)||'연결 오류가 났습니다.';
+}
+// 연결 정보(SDP)를 짧은 문자열로 압축
+const SDP = {
+  b64(u8){ let s=''; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); },
+  unb64(t){ t=t.replace(/-/g,'+').replace(/_/g,'/'); while(t.length%4) t+='='; const s=atob(t), u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; },
+  async pack(desc){
+    const bytes=new TextEncoder().encode(JSON.stringify({t:desc.type,s:desc.sdp}));
+    if(typeof CompressionStream!=='undefined'){
+      try{ const z=await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer(); return 'HXz'+this.b64(new Uint8Array(z)); }catch(e){}
+    }
+    return 'HXp'+this.b64(bytes);
+  },
+  async unpack(text){
+    const t=String(text||'').replace(/\s+/g,''), kind=t.slice(0,3);
+    if(kind!=='HXz' && kind!=='HXp') throw new Error('HEXARIA 연결 코드가 아닙니다. 코드 전체를 복사했는지 확인하세요.');
+    let bytes=this.unb64(t.slice(3));
+    if(kind==='HXz') bytes=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    const o=JSON.parse(new TextDecoder().decode(bytes));
+    return {type:o.t,sdp:o.s};
+  }
+};
+async function waitIce(pc){
+  if(pc.iceGatheringState==='complete') return;
+  await new Promise(res=>{ const t=setTimeout(res,5000); pc.addEventListener('icegatheringstatechange',()=>{ if(pc.iceGatheringState==='complete'){ clearTimeout(t); res(); } }); });
+}
+
+const Net = {
+  mode:null, isHost:false, code:null, clientId:null, name:'',
+  main:null, hostMain:null, mySeat:-1,
+  joins:new Map(), subs:new Map(), links:new Map(), connected:new Set(),
+  hostLink:null, peer:null, pending:null, guestPc:null,
+  error:'', status:'', linkLost:false,
+  init(){
+    this.clientId=storeGet('hexaria-client-id');
+    if(!this.clientId){ this.clientId='c'+rid()+rid(); storeSet('hexaria-client-id',this.clientId); }
+  },
+  rtcSupported(){ return typeof RTCPeerConnection!=='undefined'; },
+  newCode(){ const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let c=''; for(let i=0;i<5;i++) c+=A[Math.floor(Math.random()*A.length)]; return c; },
+  leave(){
+    this.links.forEach(e=>{ try{ e.link.close(); }catch(x){} });
+    if(this.hostLink) try{ this.hostLink.close(); }catch(x){}
+    if(this.pending) try{ this.pending.pc.close(); }catch(x){}
+    if(this.guestPc) try{ this.guestPc.close(); }catch(x){}
+    if(this.peer) try{ this.peer.destroy(); }catch(x){}
+    Object.assign(this,{mode:null,isHost:false,code:null,main:null,hostMain:null,mySeat:-1,joins:new Map(),subs:new Map(),links:new Map(),connected:new Set(),
+      hostLink:null,peer:null,pending:null,guestPc:null,error:'',status:'',linkLost:false});
+  },
+  /* ---------- 호스트 ---------- */
+  beginHost(mode,code,name){
+    this.mode=mode; this.isHost=true; this.code=code; this.name=name;
+    this.hostMain={ mode, code, phase:'lobby', status:{submitted:[]}, state:null,
+      seats:[{type:'human',uid:this.clientId,name},{type:'open'},{type:'open'},{type:'open'}] };
+    this.publish();
+  },
+  openHostPeer(code){
+    return new Promise((res,rej)=>{
+      const peer=new window.Peer(CONFIG.net.peerPrefix+code.toLowerCase(),{config:{iceServers:CONFIG.net.iceServers}});
+      let opened=false;
+      peer.on('open',()=>{ opened=true; this.peer=peer; res(); });
+      peer.on('error',e=>{ if(!opened){ try{ peer.destroy(); }catch(x){} rej(e); } else if(e.type!=='peer-unavailable'){ this.error=peerError(e); render(); } });
+      peer.on('connection',conn=>conn.on('open',()=>this.hostAddLink(wrapPeerConn(conn))));
+      peer.on('disconnected',()=>{ try{ if(!peer.destroyed) peer.reconnect(); }catch(x){} });
+    });
+  },
+  async hostRoom(name){
+    await loadPeerJS();
+    for(let i=0;i<4;i++){
+      const code=this.newCode();
+      try{ await this.openHostPeer(code); this.beginHost('room',code,name); return; }
+      catch(e){ if(e && e.type==='unavailable-id') continue; throw new Error(peerError(e)); }
+    }
+    throw new Error('방 코드를 만들지 못했습니다. 잠시 뒤 다시 시도하세요.');
+  },
+  hostManual(name){ this.beginHost('manual','직접',name); },
+  async resumeHost(){
+    const raw=storeGet('hexaria-host-save'); if(!raw) throw new Error('이어서 열 게임이 없습니다.');
+    const s=JSON.parse(raw);
+    this.mode=s.mode; this.isHost=true; this.code=s.code; this.hostMain=s.main;
+    this.subs=new Map(s.subs||[]); this.joins=new Map(s.joins||[]);
+    if(s.mode==='room'){ await loadPeerJS(); try{ await this.openHostPeer(s.code); }catch(e){ throw new Error(peerError(e)); } }
+    this.publish();
+  },
+  save(){ if(this.hostMain) storeSet('hexaria-host-save',JSON.stringify({mode:this.mode,code:this.code,main:this.hostMain,subs:[...this.subs],joins:[...this.joins],at:Date.now()})); },
+  async createInvite(){
+    const pc=new RTCPeerConnection({iceServers:CONFIG.net.iceServers});
+    const dc=pc.createDataChannel('hexaria',{ordered:true});
+    const p={pc,dc}; if(this.pending) try{ this.pending.pc.close(); }catch(x){}
+    this.pending=p;
+    dc.onopen=()=>{ this.hostAddLink(wrapDC(dc,pc)); if(this.pending===p) this.pending=null; UI.inviteCode=''; UI.answerInput=''; this.status='참가자가 연결되었습니다.'; render(); };
+    await pc.setLocalDescription(await pc.createOffer());
+    await waitIce(pc);
+    UI.inviteCode=await SDP.pack(pc.localDescription);
+    this.status='초대 코드를 참가자에게 보내고, 받은 응답 코드를 아래에 붙여넣으세요.';
+  },
+  async acceptAnswer(text){
+    if(!this.pending) throw new Error('먼저 초대 코드를 만드세요.');
+    const d=await SDP.unpack(text);
+    if(d.type!=='answer') throw new Error('응답 코드가 아닙니다. 참가자가 만든 응답 코드를 붙여넣으세요.');
+    await this.pending.pc.setRemoteDescription(d);
+    this.status='연결하는 중입니다…';
+  },
+  hostAddLink(link){
+    const e={link,clientId:null};
+    this.links.set(link.id,e);
+    link.onmsg=m=>this.hostOnMsg(e,m);
+    link.onclose=()=>{ this.links.delete(link.id);
+      if(e.clientId && ![...this.links.values()].some(x=>x.clientId===e.clientId)) this.connected.delete(e.clientId);
+      this.publish(); };
+  },
+  hostOnMsg(e,m){
+    if(!m || typeof m!=='object') return;
+    if(m.t==='hello'){
+      const cid=String(m.clientId||'').replace(/[^A-Za-z0-9]/g,'').slice(0,40) || ('x'+rid());
+      if(cid===this.clientId) return;
+      e.clientId=cid; this.connected.add(cid);
+      if(!this.joins.has(cid)) this.joins.set(cid,{name:String(m.name||'').trim().slice(0,12)});
+      this.hostTick();
+    } else if(m.t==='sub' && e.clientId){
+      const part=m.part||{}, cur=this.subs.get(e.clientId)||{};
+      ['civ','placement','plan'].forEach(k=>{ if(part[k]!==undefined) cur[k]=part[k]; });
+      this.subs.set(e.clientId,cur);
+      this.hostTick();
+    }
+  },
+  hostTick(){
+    if(!this.isHost || !this.hostMain) return;
+    for(let i=0;i<12;i++){ const m=clone(this.hostMain); if(!this.hostStep(m)) break; this.hostMain=m; }
+    this.publish();
+  },
+  viewFor(m,seat){
+    const conn=m.seats.map(s=>s.type==='human' && (s.uid===this.clientId || this.connected.has(s.uid)));
+    const v=Object.assign({},m,{conn});
+    if(m.state) v.state = seat<0 ? null : Setup.viewState(m.state,seat);
+    return v;
+  },
+  publish(){
+    if(!this.isHost || !this.hostMain) return;
+    this.save();
+    const m=this.hostMain;
+    for(const e of this.links.values()){
+      if(!e.clientId) continue;
+      e.link.send({t:'main',main:this.viewFor(m,m.seats.findIndex(s=>s.uid===e.clientId))});
+    }
+    this.receiveMain(this.viewFor(m,m.seats.findIndex(s=>s.uid===this.clientId)));
+  },
+  hostSetSeat(i,type){
+    const m=clone(this.hostMain);
+    if(m.phase!=='lobby' || i===0 || m.seats[i].type==='human') return;
+    m.seats[i]= type==='ai' ? {type:'ai',name:`컴퓨터 ${i}`} : {type:'open'};
+    this.hostMain=m; this.hostTick();
+  },
+  hostKick(i){
+    const m=clone(this.hostMain);
+    if(m.phase!=='lobby' || i===0) return;
+    const s=m.seats[i]; if(s.uid){ this.joins.delete(s.uid); }
+    m.seats[i]={type:'open'}; this.hostMain=m;
+    for(const e of this.links.values()) if(e.clientId===s.uid){ e.link.send({t:'kick'}); }
+    this.hostTick();
+  },
+  hostStart(){
+    const m=clone(this.hostMain);
+    if(m.phase!=='lobby') return;
+    let n=0;
+    m.seats=m.seats.map(s=>s.type==='open'||s.type==='ai'?{type:'ai',name:`컴퓨터 ${++n}`}:s);
+    const g=Setup.createGame(m.seats);
+    m.phase='civ'; m.status={submitted:[]}; m.state=Setup.serialize(g);
+    this.hostMain=m; this.hostTick();
+  },
+  // 연결이 끊긴 사람 자리를 컴퓨터가 이어받게 함
+  hostReplaceWithAI(i){
+    const m=clone(this.hostMain);
+    if(i===0 || !m.state || m.seats[i].type!=='human') return;
+    m.seats[i]={type:'ai',name:`컴퓨터(${m.seats[i].name})`};
+    const g=Setup.deserialize(m.state), p=g.players[i];
+    p.type='ai'; p.uid=null; p.name=m.seats[i].name;
+    if(g.phase==='civ') p.civ=p.civ||AI.pickCiv();
+    if(g.phase==='placement'){ if(!p.civ) p.civ=AI.pickCiv(); g.units=g.units.filter(u=>u.owner!==i); p.points=CONFIG.startPoints; p.reserve={}; AI.setup(g,i); }
+    m.state=Setup.serialize(g); this.hostMain=m; this.hostTick();
+  },
+  hostStep(m){
+    if(m.phase==='lobby'){
+      let ch=false;
+      for(const [uid,j] of this.joins){
+        if(m.seats.some(s=>s.uid===uid)) continue;
+        const free=m.seats.findIndex(s=>s.type==='open'); if(free<0) break;
+        m.seats[free]={type:'human',uid,name:(j&&j.name)||`플레이어 ${free+1}`}; ch=true;
+      }
+      return ch;
+    }
+    const g=Setup.deserialize(m.state);
+    const humans=g.players.filter(p=>p.type==='human');
+    const subOf=p=> p.uid===this.clientId ? (this.subs.get(this.clientId)||{}) : (this.subs.get(p.uid)||{});
+    const HAS={
+      civ:p=>!!CIVS[subOf(p).civ],
+      placement:p=>!!subOf(p).placement && Array.isArray(subOf(p).placement.units),
+      game:p=>{ if(p.eliminated) return true; const pl=subOf(p).plan; return !!pl && pl.turn===g.turn && Array.isArray(pl.actions); }
+    };
+    let ch=false;
+    if(g.over) return false;
+    if(humans.every(HAS[m.phase])){
+      if(m.phase==='civ'){
+        humans.forEach(p=>p.civ=subOf(p).civ);
+        g.phase='placement'; Setup.aiSetupAll(g); m.phase='placement';
+      } else if(m.phase==='placement'){
+        humans.forEach(p=>Setup.applyPlacement(g,p.id,subOf(p).placement.units,subOf(p).placement.hq));
+        Setup.begin(g); m.phase='game';
+      } else if(m.phase==='game'){
+        g.plans={};
+        humans.forEach(p=>g.plans[p.id]=p.eliminated?[]:Setup.sanitizePlan(g,p.id,subOf(p).plan.actions));
+        g.players.filter(p=>p.type==='ai').forEach(p=>g.plans[p.id]=AI.plan(g,p.id));
+        Setup.resolveTurn(g);
+      }
+      ch=true;
+    }
+    const sub=humans.filter(HAS[m.phase]).map(p=>p.id);
+    if(JSON.stringify(sub)!==JSON.stringify((m.status&&m.status.submitted)||[])){ m.status={submitted:sub}; ch=true; }
+    if(ch) m.state=Setup.serialize(g);
+    return ch;
+  },
+  /* ---------- 참가자 ---------- */
+  async joinRoom(code,name){
+    code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(code.length!==5) throw new Error('방 코드 5자리를 확인해 주세요.');
+    await loadPeerJS();
+    const peer=new window.Peer({config:{iceServers:CONFIG.net.iceServers}});
+    await new Promise((res,rej)=>{ peer.on('open',res); peer.on('error',e=>rej(new Error(peerError(e)))); });
+    this.peer=peer;
+    const conn=peer.connect(CONFIG.net.peerPrefix+code.toLowerCase(),{reliable:true,serialization:'raw'});
+    await new Promise((res,rej)=>{
+      const t=setTimeout(()=>rej(new Error('호스트에 연결하지 못했습니다. 코드를 확인하거나 잠시 뒤 다시 시도하세요.')),15000);
+      conn.on('open',()=>{ clearTimeout(t); res(); });
+      peer.on('error',e=>{ clearTimeout(t); rej(new Error(peerError(e))); });
+    });
+    this.mode='room'; this.code=code;
+    this.clientAttach(wrapPeerConn(conn),name);
+  },
+  async answerInvite(text,name){
+    const d=await SDP.unpack(text);
+    if(d.type!=='offer') throw new Error('초대 코드가 아닙니다. 호스트가 만든 초대 코드를 붙여넣으세요.');
+    const pc=new RTCPeerConnection({iceServers:CONFIG.net.iceServers});
+    this.guestPc=pc;
+    pc.ondatachannel=ev=>{ const dc=ev.channel; const go=()=>{ this.mode='manual'; this.code='직접'; this.clientAttach(wrapDC(dc,pc),name); };
+      if(dc.readyState==='open') go(); else dc.onopen=go; };
+    await pc.setRemoteDescription(d);
+    await pc.setLocalDescription(await pc.createAnswer());
+    await waitIce(pc);
+    UI.answerCode=await SDP.pack(pc.localDescription);
+  },
+  clientAttach(link,name){
+    this.hostLink=link; this.isHost=false; this.name=name; this.linkLost=false; this.error='';
+    link.onmsg=m=>{
+      if(m.t==='main') this.receiveMain(m.main);
+      else if(m.t==='kick'){ this.error='호스트가 대기실에서 내보냈습니다.'; this.linkLost=true; render(); }
+    };
+    link.onclose=()=>{ this.linkLost=true; render(); };
+    link.send({t:'hello',clientId:this.clientId,name});
+    UI.online=true; UI.screen='lobby'; render();
+  },
+  receiveMain(d){
+    this.main=d;
+    this.mySeat=d.seats.findIndex(s=>s.uid===this.clientId);
+    applyOnline(d);
+  },
+  submit(part){
+    if(this.isHost){
+      const cur=this.subs.get(this.clientId)||{}; Object.assign(cur,part); this.subs.set(this.clientId,cur);
+      this.hostTick(); return;
+    }
+    if(!this.hostLink || this.linkLost){ this.error='호스트와 연결이 끊겨 제출하지 못했습니다.'; UI.submittedLocal=null; render(); return; }
+    this.hostLink.send({t:'sub',part});
+  }
+};
+
+// 받은 게임 문서로 이 기기의 화면을 갱신
+function applyOnline(d){
+  UI.online=true;
+  const me=Net.mySeat;
+  if(d.phase==='lobby' || me<0 || !d.state){ G=null; UI.screen='lobby'; render(); return; }
+  let draft=null;
+  if(G && G.phase==='placement' && d.phase==='placement' && !isWaiting()){
+    const p=G.players[me]; draft={points:p.points,reserve:Object.assign({},p.reserve),units:Game.unitsOf(G,me).map(u=>Object.assign({},u)),hq:(h=>h?Object.assign({},h):null)(Purchase.hqOf(G,me))};
+  }
+  const prevPhase=G?G.phase:null;
+  G=Setup.deserialize(d.state);
+  UI.viewer=me;
+  if(draft){ const p=G.players[me]; p.points=draft.points; p.reserve=draft.reserve; G.units=G.units.filter(u=>u.owner!==me).concat(draft.units); G.nextUnitId=Math.max(G.nextUnitId,...draft.units.map(u=>u.id+1),1);
+    G.buildings=G.buildings.filter(b=>b.owner!==me); if(draft.hq){ G.buildings.push(draft.hq); G.nextBuildingId=Math.max(G.nextBuildingId,draft.hq.id+1); } }
+  if(d.phase==='civ') UI.screen='civ';
+  else if(d.phase==='placement'){ if(prevPhase!=='placement'){ UI.selReserve=null; UI.selUnit=null; setHint('상점에서 기물을 구매한 뒤, 강조된 시작 영역의 칸을 눌러 배치하세요.'); } UI.screen='placement'; }
+  else if(d.phase==='game'){
+    UI.screen='game';
+    if(G.over){ if(UI.lastTurn!=='over'){ UI.lastTurn='over'; UI.viewer=me; render(); return showGameOver(); } }
+    else if(UI.lastTurn!==G.turn){
+      if(UI.lastTurn==null){
+        UI.overlay={title:'중앙 특별 구역 효과 공개',btn:'확인',body:centerAnnounceHTML(G.centerEffect)};
+        if(G.turn>1){ const res=resultsHTML(me,G.turn-1); if(res) UI.overlay.body+=`<h4>지난 턴 결과</h4>${res}`; }
+      } else {
+        const res=resultsHTML(me,G.turn-1);
+        UI.overlay={title:`턴 ${G.turn-1} 결과`,btn:'다음 턴 계획하기',body:res||'<p class="muted">기록이 없습니다.</p>'};
+      }
+      UI.lastTurn=G.turn; UI.plan=[]; UI.mode=null; UI.selUnit=null; UI.submittedLocal=null;
+      setHint('기물을 누르면 이동(파란 칸)과 공격(빨간 칸)할 수 있는 곳이 표시됩니다.');
+    }
+  }
+  render();
+}
+function isWaiting(){
+  if(G && G.phase==='game' && (G.over || (G.players[UI.viewer]&&G.players[UI.viewer].eliminated))) return true;
+  if(!UI.online || !Net.main) return false;
+  if(((Net.main.status&&Net.main.status.submitted)||[]).includes(Net.mySeat)) return true;
+  const s=UI.submittedLocal;
+  return !!s && s.phase===Net.main.phase && s.turn===(G?G.turn:0);
+}
+function submittedSeats(){
+  if(UI.online) return (Net.main&&Net.main.status&&Net.main.status.submitted)||[];
+  return G.players.filter(x=>G.plans[x.id]).map(x=>x.id);
+}
+function centerAnnounceHTML(ce){
+  return `<p>이번 게임에서 무작위로 정해진 효과입니다. 모든 플레이어에게 공개됩니다.</p>
+    <div class="effect"><b>${esc(ce.name)}</b> <span class="tag">${ce.kind==='buff'?'버프':'디버프'}</span>${ce.sample?' <span class="tag temp">샘플 효과</span>':''}<br><span class="muted small">${esc(ce.desc)}</span></div>
+    <p class="small muted">자신의 기물이 중앙 2칸 중 한 칸에라도 있으면 효과가 적용됩니다.</p>`;
+}
+
+/* =============================== [FLOW] =============================== */
+let G=null;
+const SETUP={ seats:[
+  {name:'플레이어 1',type:'human'},{name:'플레이어 2',type:'ai'},{name:'플레이어 3',type:'ai'},{name:'플레이어 4',type:'ai'}
+]};
+const UI={ selBld:null, recruitType:null, selHQ:false, pop:null, online:false, lastTurn:null, submittedLocal:null, netName:'', netCode:'', netBusy:false, onlineTab:'room',
+  inviteCode:'', answerInput:'', offerInput:'', answerCode:'', copied:'',
+  screen:'menu', viewer:0, queue:[], overlay:null, selCiv:null, selReserve:null, selUnit:null, mode:null, buildType:'tower', plan:[], hint:'', hintWarn:false };
+
+const Flow = {
+  multiHuman(){ return Game.humans(G).length>1; },
+  newGame(){
+    UI.online=false;
+    G=Setup.createGame(SETUP.seats);
+    UI.queue=Game.humans(G).map(p=>p.id);
+    this.nextCiv();
+  },
+  gate(title,body){
+    UI.overlay = this.multiHuman() ? {title,body:body||'다른 플레이어는 화면을 보지 않도록 해 주세요.',btn:'시작하기',opaque:true} : null;
+    render();
+  },
+  nextCiv(){
+    if(!UI.queue.length) return this.startPlacement();
+    UI.viewer=UI.queue.shift(); UI.selCiv=null; UI.screen='civ';
+    this.gate(`${G.players[UI.viewer].name} — 문명 선택`);
+  },
+  startPlacement(){
+    G.phase='placement';
+    Setup.aiSetupAll(G);
+    UI.queue=Game.humans(G).map(p=>p.id);
+    this.nextPlacement();
+  },
+  nextPlacement(){
+    if(!UI.queue.length) return this.startGame();
+    UI.viewer=UI.queue.shift(); UI.selReserve=null; UI.selUnit=null; UI.screen='placement';
+    setHint('상점에서 기물을 구매한 뒤, 강조된 시작 영역의 칸을 눌러 배치하세요.');
+    this.gate(`${G.players[UI.viewer].name} — 기물 구매와 배치`,'다른 플레이어의 배치가 보이지 않도록 화면을 넘겨 주세요.');
+  },
+  startGame(){
+    Setup.begin(G);
+    UI.screen='game'; UI.viewer=Game.humans(G)[0].id;
+    UI.overlay={title:'중앙 특별 구역 효과 공개',opaque:this.multiHuman(),btn:'확인',body:centerAnnounceHTML(G.centerEffect),
+      onClose:()=>this.startPlanning()};
+    render();
+  },
+  startPlanning(){
+    G.plans={};
+    G.players.filter(p=>p.type==='ai').forEach(p=>G.plans[p.id]=AI.plan(G,p.id));
+    UI.queue=Game.humans(G).map(p=>p.id);
+    this.nextPlanner();
+  },
+  nextPlanner(){
+    if(G.over) return showGameOver();
+    UI.queue=UI.queue.filter(id=>!G.players[id].eliminated);
+    if(!Game.humans(G).some(p=>!p.eliminated)){
+      UI.viewer=Game.humans(G)[0].id; UI.screen='game';
+      const res=G.turn>1?resultsHTML(UI.viewer,G.turn-1):'';
+      UI.overlay={title:`관전 중 — 턴 ${G.turn}`,btn:'다음 턴 진행',body:`<p class="muted">사람 플레이어가 모두 탈락했습니다. 컴퓨터끼리 남은 게임을 한 턴씩 진행합니다.</p>${res}`,onClose:()=>this.resolve()};
+      return render();
+    }
+    if(!UI.queue.length) return this.resolve();
+    UI.viewer=UI.queue.shift(); UI.plan=[]; UI.mode=null; UI.selUnit=null;
+    setHint('기물을 누르면 이동(파란 칸)과 공격(빨간 칸)할 수 있는 곳이 표시됩니다.');
+    const res = G.turn>1 ? resultsHTML(UI.viewer,G.turn-1) : '';
+    if(this.multiHuman()) UI.overlay={title:`턴 ${G.turn} — ${G.players[UI.viewer].name} 차례`,opaque:true,btn:'행동 계획 시작',
+      body:`<p class="muted">다른 플레이어는 화면을 보지 않도록 해 주세요.</p>${res?`<h4>지난 턴 결과</h4>${res}`:''}`};
+    else if(res) UI.overlay={title:`턴 ${G.turn-1} 결과`,btn:'다음 턴 계획하기',body:res};
+    render();
+  },
+  submit(){ G.plans[UI.viewer]=UI.plan.slice(); UI.plan=[]; this.nextPlanner(); },
+  resolve(){ Setup.resolveTurn(G); if(G.over){ UI.viewer=Game.humans(G)[0].id; return showGameOver(); } this.startPlanning(); }
+};
+
+function showGameOver(){
+  const o=G.over, w=o.winner>=0?G.players[o.winner]:null;
+  const res=resultsHTML(UI.viewer,o.turn);
+  UI.screen='game'; UI.mode=null; UI.selUnit=null;
+  UI.overlay={title: w?`${w.name} 승리!`:'무승부', btn:'보드 보기',
+    body:`<p>${w?`<span class="dot" style="background:${w.color}"></span>${esc(w.name)} (${CIVS[w.civ].name} 문명)만 본진을 지켰습니다.`:'남은 본진이 없습니다.'} 턴 ${o.turn}에 게임이 끝났습니다.</p>${res?`<h4>마지막 턴 기록</h4>${res}`:''}`};
+  render();
+}
+function resultsHTML(viewer,turn){
+  const items=G.log.filter(e=>e.turn===turn).map(e=>({e,t:Log.textFor(e,viewer)})).filter(x=>x.t);
+  if(!items.length) return '';
+  let html='', last=null;
+  for(const {e,t} of items){
+    if(e.slot!==last){ html+=`<div class="small" style="margin-top:8px"><b>${e.slot?`슬롯 ${e.slot}`:'공통'}</b></div>`; last=e.slot; }
+    html+=`<div class="small" style="padding-left:10px">${e.pid!=null?`<span class="dot" style="background:${G.players[e.pid].color}"></span>`:''}${esc(t)}</div>`;
+  }
+  return html;
+}
+function setHint(t,warn){ UI.hint=t; UI.hintWarn=!!warn; }
+
+/* ================================ [UI] ================================ */
+const $app=document.getElementById('app');
+const SIZE=20;
+
+function bar(x,y,w,frac,color){
+  return `<rect x="${x-w/2}" y="${y}" width="${w}" height="3.4" rx="1.5" fill="#000" fill-opacity=".45"/><rect x="${x-w/2}" y="${y}" width="${w*Math.max(0,Math.min(1,frac))}" height="3.4" rx="1.5" fill="${color}"/>`;
+}
+
+function boardSVG(o){
+  const R=CONFIG.boardRadius, w=Math.sqrt(3)*SIZE*(2*R+1)+8, h=SIZE*(3*R+2)+8;
+  const p=G.players[o.viewer], inGame=G.phase==='game';
+  const parts=[`<svg class="board" viewBox="${-w/2} ${-h/2} ${w} ${h}" role="img" aria-label="육각형 보드 331칸">`,
+    `<defs><marker id="arw" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0L10,5L0,10z" fill="var(--brass)"/></marker></defs>`];
+  const ov=[];
+  for(const t of G.board.tiles.values()){
+    const [x,y]=Hex.toPixel(t.q,t.r,SIZE);
+    let cls;
+    if(inGame) cls = p.visible.has(t.key)?'vis':(p.explored.has(t.key)?'exp':'unk');
+    else cls = t.zoneOwner===o.viewer?'vis':'exp';
+    const poly=Hex.polygon(x,y,SIZE*0.97);
+    parts.push(`<g class="tile ${cls}" data-k="${t.key}"><polygon class="base" points="${poly}"/></g>`);
+    if(t.zoneOwner!=null) ov.push(`<polygon class="ov" points="${poly}" fill="${G.players[t.zoneOwner].color}" fill-opacity="${t.zoneOwner===o.viewer?0.22:0.13}"/>`);
+    if(t.center) ov.push(`<polygon class="ov center-mark" points="${Hex.polygon(x,y,SIZE*0.84)}"/>`);
+    if(inGame && G.resources && G.resources.includes(t.key) && p.explored.has(t.key)){ const d=SIZE*0.42;
+      ov.push(`<polygon class="ov" points="${x},${y-d} ${x+d},${y} ${x},${y+d} ${x-d},${y}" fill="var(--center)" fill-opacity=".85" stroke="var(--tile-edge)" stroke-width="1.2"/>`); }
+    if(o.scoutTiles && o.scoutTiles.has(t.key)) ov.push(`<polygon class="ov" points="${Hex.polygon(x,y,SIZE*0.88)}" fill="none" stroke="${p.color}" stroke-width="1.5" stroke-dasharray="2 2.5"/>`);
+    if(o.path && o.path.has(t.key)) ov.push(`<polygon class="ov" points="${Hex.polygon(x,y,SIZE*0.7)}" fill="var(--danger)" fill-opacity=".22"/>`);
+    if(o.vr && o.vr.has(t.key)) ov.push(`<polygon class="ov vr-mark" points="${Hex.polygon(x,y,SIZE*0.8)}"/>`);
+    if(o.atk && o.atk.has(t.key)) ov.push(`<polygon class="ov atk-mark" points="${Hex.polygon(x,y,SIZE*0.78)}"/>`);
+    if(o.hl && o.hl.has(t.key)) ov.push(`<polygon class="ov hl-mark" points="${Hex.polygon(x,y,SIZE*0.78)}"/>`);
+    if(o.sel===t.key) ov.push(`<polygon class="ov sel-mark" points="${Hex.polygon(x,y,SIZE*0.92)}"/>`);
+  }
+  parts.push(`<g class="ov">${ov.join('')}</g>`);
+  const ar=[];
+  (o.arrows||[]).forEach(([a,b])=>{ const [x1,y1]=Hex.toPixel(a[0],a[1],SIZE), [x2,y2]=Hex.toPixel(b[0],b[1],SIZE);
+    const dx=x2-x1, dy=y2-y1, L=Math.hypot(dx,dy)||1, k=(L-SIZE*0.6)/L;
+    ar.push(`<line x1="${x1}" y1="${y1}" x2="${x1+dx*k}" y2="${y1+dy*k}" stroke="var(--brass)" stroke-width="2.4" marker-end="url(#arw)"/>`); });
+  (o.ghosts||[]).forEach(([q,r])=>{ const [x,y]=Hex.toPixel(q,r,SIZE); ar.push(`<circle cx="${x}" cy="${y}" r="${SIZE*0.55}" fill="none" stroke="${p.color}" stroke-width="2" stroke-dasharray="4 3"/>`); });
+  (o.defended||[]).forEach(([q,r])=>{ const [x,y]=Hex.toPixel(q,r,SIZE); ar.push(`<circle cx="${x}" cy="${y}" r="${SIZE*0.8}" fill="none" stroke="var(--hl)" stroke-width="3"/>`); });
+  (o.plannedRecruits||[]).forEach(a=>{ const [x,y]=Hex.toPixel(a.at[0],a.at[1],SIZE); ar.push(`<circle cx="${x}" cy="${y}" r="${SIZE*0.58}" fill="none" stroke="${p.color}" stroke-width="2" stroke-dasharray="4 3"/><text class="unit-label" x="${x}" y="${y}" style="fill:${p.color}">${UNITS[a.unit].short}</text>`); });
+  (o.plannedBuilds||[]).forEach(a=>{ const [x,y]=Hex.toPixel(a.at[0],a.at[1],SIZE); ar.push(`<rect x="${x-SIZE*0.55}" y="${y-SIZE*0.55}" width="${SIZE*1.1}" height="${SIZE*1.1}" rx="3" fill="none" stroke="${p.color}" stroke-width="2" stroke-dasharray="4 3"/><text class="unit-label" x="${x}" y="${y}" style="fill:${p.color}">${BUILDINGS[a.building].short}</text>`); });
+  if(inGame) Vision.activeScouts(G,o.viewer).forEach(sc=>{ const [x,y]=Hex.toPixel(sc.q,sc.r,SIZE);
+    ar.push(`<g><ellipse cx="${x}" cy="${y}" rx="${SIZE*0.55}" ry="${SIZE*0.32}" fill="var(--surface)" stroke="${p.color}" stroke-width="1.6"/><circle cx="${x}" cy="${y}" r="${SIZE*0.17}" fill="${p.color}"/></g>`); });
+  parts.push(`<g class="ov">${ar.join('')}</g>`);
+  const us=[];
+  for(const b of (G.buildings||[])){
+    const k=Hex.key(b.q,b.r), mine=b.owner===o.viewer;
+    if(!mine && !(inGame && p.visible.has(k))) continue;
+    const [x,y]=Hex.toPixel(b.q,b.r,SIZE), c=G.players[b.owner].color, s=SIZE*0.62;
+    if(b.done===false){
+      us.push(`<rect x="${x-s}" y="${y-s}" width="${s*2}" height="${s*2}" rx="3" fill="${c}" fill-opacity=".35" stroke="${c}" stroke-width="2" stroke-dasharray="3 2.5"/>`);
+      us.push(`<text class="unit-label" x="${x}" y="${y-1}" style="fill:var(--text)">${BUILDINGS[b.type].short}</text>`);
+      us.push(`<text x="${x+s}" y="${y-s+2}" font-size="8" font-weight="700" text-anchor="middle" fill="var(--text)">${Math.max(0,b.completeAt-G.turn+1)}</text>`);
+      us.push(bar(x,y+s-5,s*1.6,b.dur/b.max,'#f2d38a'));
+      continue;
+    }
+    us.push(`<rect x="${x-s}" y="${y-s}" width="${s*2}" height="${s*2}" rx="3" fill="${c}" stroke="${mine?'#fff':'#000'}" stroke-opacity=".7" stroke-width="1.6"/>`);
+    us.push(`<text class="unit-label" x="${x}" y="${y-1}">${BUILDINGS[b.type].short}</text>`);
+    us.push(bar(x,y+s-5,s*1.6,b.dur/b.max,'#f2d38a'));
+  }
+  for(const u of G.units){
+    if(!u.alive) continue;
+    const k=Hex.key(u.q,u.r), mine=u.owner===o.viewer;
+    if(!mine && !(inGame && p.visible.has(k))) continue;
+    const [x,y]=Hex.toPixel(u.q,u.r,SIZE), c=G.players[u.owner].color;
+    us.push(`<circle cx="${x}" cy="${y}" r="${SIZE*0.6}" fill="${c}" stroke="${mine?'#fff':'#000'}" stroke-opacity="${mine?0.9:0.5}" stroke-width="1.6"/>`);
+    us.push(`<text class="unit-label" x="${x}" y="${y-1}">${UNITS[u.type].short}</text>`);
+    if(inGame) us.push(bar(x,y+SIZE*0.34,SIZE*0.9,u.hp/Rules.maxHp(u),'#8fe39b'));
+  }
+  parts.push(`<g class="ov">${us.join('')}</g></svg>`);
+  return parts.join('');
+}
+
+function legendHTML(inGame){
+  return `<div class="legend">
+    ${inGame?`<span><i style="background:var(--tile-vis)"></i>현재 시야</span><span><i style="background:var(--tile-exp)"></i>확인했던 지역</span><span><i style="background:var(--tile-unk)"></i>확인하지 못한 지역</span>`:''}
+    <span><i style="background:var(--center)"></i>중앙 특별 구역</span>${inGame?'<span>◆ 자원 칸 (보급소 자리)</span>':''}
+    <span><i style="border:1.5px dashed var(--hl);background:transparent"></i>선택한 기물의 기본 시야</span>
+    ${inGame?`<span>원 = 기물(초록 막대 체력), 네모 = 건물(노란 막대 내구도)</span><span>눈 표시와 점선 칸 = 정찰 지역 (${CONFIG.scoutVision}칸, ${CONFIG.scoutDuration}턴 유지)</span><span><i style="background:var(--hl);opacity:.6"></i>이동할 수 있는 칸</span><span><i style="background:var(--danger);opacity:.6"></i>공격할 수 있는 상대 · 돌격 경로</span>`:''}
+  </div>`;
+}
+
+function topbar(extra){
+  return `<div class="topbar"><span class="wordmark">HEXARIA</span>${extra||''}<span class="spacer"></span><button class="btn small ghost" data-act="quit">메인으로</button></div>`;
+}
+
+function viewMenu(){
+  const LC=[[0,-2],[2,-2],[0,2],[-2,2]], logo=[];
+  for(const [q,r] of Hex.range([0,0],2)){ const [x,y]=Hex.toPixel(q,r,11);
+    const ci=LC.findIndex(c=>c[0]===q&&c[1]===r);
+    const fill = (q===0&&r===0) ? 'var(--center)' : (ci>=0 ? PLAYER_COLORS[ci] : 'var(--tile-vis)');
+    logo.push(`<polygon points="${Hex.polygon(x,y,10.4)}" fill="${fill}" stroke="var(--bg)" stroke-width="1.5"/>`); }
+  let save=null; try{ save=JSON.parse(storeGet('hexaria-host-save')||'null'); }catch(e){}
+  const canResume = save && save.main && save.main.phase!=='lobby';
+  return `<div class="menu"><div class="menu-inner">
+    <svg viewBox="-60 -52 120 104" width="132" aria-hidden="true">${logo.join('')}</svg>
+    <h1 class="wordmark">HEXARIA</h1>
+    <p class="sub">헥사리아 · 네 문명이 겨루는 육각 전략 보드게임</p>
+    <div class="menu-btns">
+      <button class="btn primary" data-act="go" data-to="start">한 기기로 시작</button>
+      <button class="btn" data-act="go" data-to="online">온라인 게임 (다른 기기와 함께)</button>
+      ${canResume?`<button class="btn" data-act="net-resume">호스트하던 게임 다시 열기 (턴 ${save.main.state?save.main.state.turn:0})</button>`:''}
+      <button class="btn" data-act="go" data-to="rules">게임 규칙</button>
+      <button class="btn" data-act="go" data-to="settings">게임 설정</button>
+    </div>
+    ${Net.error&&UI.screen==='menu'?`<p class="hint warn">${esc(Net.error)}</p>`:''}
+    <p class="note">프로토타입입니다. 강화와 자원 시스템은 아직 없습니다.</p>
+  </div></div>`;
+}
+
+function viewSettings(){
+  const humans=SETUP.seats.filter(s=>s.type==='human').length;
+  return `${topbar()}<div class="page">
+    <div class="page-head"><div><h2>게임 설정</h2><div class="muted">한 기기에서 하는 게임의 자리 설정입니다. 사람이 둘 이상이면 한 기기를 돌려 씁니다.</div></div>
+    <button class="btn primary" data-act="go" data-to="menu" ${humans?'':'disabled'}>저장하고 돌아가기</button></div>
+    <div class="box">${SETUP.seats.map((s,i)=>`<div class="seat"><span class="dot" style="background:${PLAYER_COLORS[i]};width:16px;height:16px"></span>
+      <input data-seat-name="${i}" value="${esc(s.name)}" maxlength="12" aria-label="플레이어 ${i+1} 이름">
+      <select data-seat-type="${i}" aria-label="플레이어 ${i+1} 유형"><option value="human" ${s.type==='human'?'selected':''}>사람</option><option value="ai" ${s.type==='ai'?'selected':''}>컴퓨터 (테스트용)</option></select></div>`).join('')}
+      ${humans?'':'<p class="hint warn">사람 플레이어가 최소 1명 있어야 합니다.</p>'}
+      <p class="small muted">컴퓨터 플레이어는 규칙 테스트용으로, 무작위 구매·배치, 중앙을 향한 이동, 가까운 상대 공격, 가끔 정찰과 건설만 합니다.</p>
+    </div>
+    <h3>현재 설정값</h3>
+    <div class="box small">보드 반지름 ${CONFIG.boardRadius}칸 (총 ${1+3*CONFIG.boardRadius*(CONFIG.boardRadius+1)}칸) · 시작 포인트 ${CONFIG.startPoints}점 · 턴당 행동 ${CONFIG.actionsPerTurn}회 · 기본 시야 ${CONFIG.baseVision}칸 · 정찰 시야 ${CONFIG.scoutVision}칸(${CONFIG.scoutDuration}턴) · 시작 영역 꼭짓점 기준 반경 ${CONFIG.startZone.radius}칸
+      <div class="muted" style="margin-top:6px">값은 코드 상단 CONFIG 에서 바꿀 수 있습니다.</div></div>
+  </div>`;
+}
+
+function statCell(u,s){
+  let v=u.stats[s];
+  if(s==='vision' && v==null) v=CONFIG.baseVision;
+  if(s==='move' && v==null && !u.moveStyle) return `${CONFIG.temp.defaultMoveRange} <span class="tag temp">임시</span>`;
+  if(v==null) return '<span class="muted">미정</span>';
+  return `${v}${(u.temp||[]).includes(s)?' <span class="tag temp">임시</span>':''}`;
+}
+
+function viewRules(){
+  return `${topbar()}<div class="page">
+    <div class="page-head"><h2>게임 규칙</h2><button class="btn" data-act="go" data-to="menu">돌아가기</button></div>
+    <div class="box">
+      <p>4명이 각자 문명을 골라 반지름 ${CONFIG.boardRadius}칸, 331칸 육각형 보드에서 개인전으로 겨룹니다.</p>
+      <ul class="plain">
+        <li>시작 전 ${CONFIG.startPoints} 포인트로 기물을 사서 자신의 시작 영역에 자유롭게 배치합니다. 남은 포인트는 건물을 짓는 데 씁니다.</li>
+        <li>매 턴 모든 플레이어가 행동 ${CONFIG.actionsPerTurn}개를 몰래 제출합니다. 같은 행동을 여러 번 골라도 됩니다.</li>
+        <li>모두 제출하면 1번, 2번, 3번 슬롯 순서로 처리합니다. 같은 슬롯의 행동은 모든 플레이어가 동시에 공개·판정되며, 누구의 행동도 먼저 실행되지 않습니다.</li>
+        <li>모든 기물의 기본 시야는 ${CONFIG.baseVision}칸입니다. 정찰을 쓰면 그 기물이 서 있던 자리 주변 ${CONFIG.scoutVision}칸이 보입니다. 정찰 지역은 그 자리에 고정되어 기물이 떠나도 남고, 다음 턴이 끝나면 사라집니다.</li>
+        <li>기병은 따로 공격하지 않고 이동으로 돌격합니다. 한 방향 직선으로 최대 3칸 움직이며, 길에 있는 상대 기물을 뚫고 지나가면서 피해를 줍니다. 상대 건물에 부딪히면 그 앞에서 멈추고 건물에 피해를 줍니다. 자기 기물은 지나갈 수 있지만 자기 건물은 지나갈 수 없습니다.</li>
+        <li>보병은 1칸 안의 상대에게 피해 2, 수호병은 1칸 안의 상대에게 피해 1을 주는 공격을 할 수 있습니다. 상대 건물도 공격할 수 있습니다. 같은 슬롯에서는 공격이 이동보다 먼저 판정됩니다.</li>
+        <li>체력이 0이 된 기물은 쓰러지고, 내구도가 0이 된 건물은 파괴됩니다.</li>
+        <li><b>승리 조건:</b> 각자 배치 단계에서 시작 영역에 본진(내구도 15)을 하나 놓습니다. 본진이 파괴되면 그 플레이어는 기물·건물과 함께 탈락하고, 마지막까지 본진이 남은 플레이어가 승리합니다.</li>
+        <li><b>방어:</b> 방어 카드를 쓴 기물은 그 턴 동안, 방어 카드의 순서(1·2·3)와 다른 순서에 들어온 공격·돌격 피해를 받지 않습니다. 방어 카드와 같은 순서의 공격이면 공격한 기물이 그 피해를 그대로 받습니다.</li>
+        <li><b>문명 전용 기물(★):</b> 처음에는 살 수 없습니다. 기술병이 문명 전용 건물(텍 공학 연구소, 파트 투기장, 람 훈련소, 벨로 정찰 기지)을 지으면, 그 건물 바로 옆에 있는 보병을 강화 행동으로 특수 기물(포격기, 광전사, 정예병, 척후병)로 바꿀 수 있습니다.</li>
+        <li><b>모집:</b> 게임 중에도 기물을 늘릴 수 있습니다. 본진이나 병영을 누르고 기물을 고른 뒤, 그 건물 바로 옆 빈 칸을 누르면 그 자리에 소환됩니다. 건물 하나당 턴마다 1번이며 기물 값만큼 포인트를 씁니다.</li>
+        <li><b>포인트 수입:</b> 보드 곳곳의 자원 칸(◆) 위에 기술병이 보급소를 지으면, 완공 후 매 턴이 끝날 때 보급소 하나당 포인트 +1을 얻습니다. 상대 보급소를 파괴해 수입을 끊을 수 있습니다.</li>
+        <li>건물은 기술병만 지을 수 있습니다. 기술병 바로 옆 빈 칸에 공사를 시작하고, 시작한 턴 뒤로 2턴이 끝날 때까지 기술병이 움직이지 않으면 완공됩니다. 그 사이 기술병이 움직이거나 쓰러지면 공사는 취소되고 비용을 돌려받습니다.</li>
+        <li> 모든 건물은 칸을 막아서, 어떤 기물도 건물 칸을 지나가거나 멈출 수 없습니다.</li>
+        <li>보드 중앙 2칸은 특별 구역입니다. 게임마다 효과가 무작위로 정해져 공개되고, 자신의 기물이 그곳에 있으면 효과가 적용됩니다.</li>
+      </ul>
+    </div>
+    <h3>문명</h3>
+    <div class="box tbl"><table><tr><th>문명</th><th>성격</th><th>특징</th><th>구체적 능력</th></tr>
+      ${Object.values(CIVS).map(c=>`<tr><td><b>${c.sym} ${c.name}</b></td><td>${c.theme}</td><td>${c.traits.join(', ')}</td><td><span class="tag wip">미확정</span></td></tr>`).join('')}</table></div>
+    <h3>기물</h3>
+    <div class="box tbl"><table><tr><th>기물</th><th>문명</th><th>포인트</th>${Object.values(STAT_LABELS).map(l=>`<th>${l}</th>`).join('')}<th>특수 능력</th></tr>
+      ${Object.values(UNITS).map(u=>`<tr><td><b>${u.civ?'★ ':''}${u.name}</b></td><td>${u.civ?CIVS[u.civ].name:'공통'}</td><td>${u.upgradeFrom?`강화 ${u.upgradeCost}점`:u.cost+'점'}</td>${Object.keys(STAT_LABELS).map(s=>`<td>${statCell(u,s)}</td>`).join('')}<td>${u.abilities.length?esc(u.abilities.join(' '))+(u.chargeDamage?` (피해 ${u.chargeDamage})`:''):'<span class="muted">미정</span>'}</td></tr>`).join('')}</table></div>
+    <h3>건물</h3>
+    <div class="box tbl"><table><tr><th>건물</th><th>비용</th><th>내구도</th><th>시야</th><th>설명</th></tr>
+      ${Object.values(BUILDINGS).map(b=>`<tr><td><b>${b.name}</b></td><td>${b.cost}점</td><td>${b.durability}</td><td>${b.vision?b.vision+'칸':'없음'}</td><td>${b.civ?`<b>${CIVS[b.civ].name} 전용.</b> `:''}${b.desc}${b.id==='hq'?'':' <span class="tag temp">수치 임시</span>'}</td></tr>`).join('')}</table></div>
+    <h3>행동</h3>
+    <div class="box tbl"><table><tr><th>행동</th><th>상태</th><th>설명</th></tr>
+      ${Object.values(ACTIONS).map(a=>`<tr><td>${a.icon} ${a.name}</td><td>${a.implemented?'<span class="tag">사용 가능</span>':'<span class="tag wip">미구현</span>'}</td><td>${a.desc}</td></tr>`).join('')}</table></div>
+    <h3>중앙 특별 구역 효과 후보</h3>
+    <div class="box tbl"><table><tr><th>효과</th><th>종류</th><th>설명</th></tr>
+      ${CENTER_EFFECTS.map(e=>`<tr><td>${e.name} ${e.sample?'<span class="tag temp">샘플</span>':''}</td><td>${e.kind==='buff'?'버프':'디버프'}</td><td>${e.desc}</td></tr>`).join('')}</table></div>
+    <h3>임시 규칙</h3>
+    <div class="box"><p class="small muted" style="margin-top:0">확정되지 않은 부분을 게임이 돌아가게 하려고 둔 규칙입니다. 데이터(UNITS, BUILDINGS, CONFIG)와 Collision 모듈에서 바꿀 수 있습니다.</p>
+      <ul class="plain">${TEMP_RULES.map(t=>`<li>${t}</li>`).join('')}</ul></div>
+    <h3>미구현 항목</h3>
+    <div class="box"><ul class="plain">${UNIMPLEMENTED.map(([a,b])=>`<li><b>${a}</b>${b?` <span class="muted">— ${b}</span>`:''}</li>`).join('')}</ul></div>
+  </div>`;
+}
+
+function viewCiv(){
+  const p=G.players[UI.viewer];
+  return `${topbar(`<span class="muted"><span class="dot" style="background:${p.color}"></span>${esc(p.name)}</span>`)}<div class="page">
+    <div class="page-head"><div><h2>문명 선택</h2><div class="muted">${esc(p.name)}의 문명을 고르세요. 구체적인 능력은 아직 정해지지 않았습니다.</div></div>
+      <button class="btn primary" data-act="civ-confirm" ${UI.selCiv&&!isWaiting()?'':'disabled'}>${isWaiting()?'제출 완료':(UI.selCiv?`${CIVS[UI.selCiv].name} 문명으로 결정`:'문명을 고르세요')}</button></div>
+    ${onlineBanner()}
+    ${isWaiting()?'<div class="banner" style="margin-bottom:12px">문명을 제출했습니다. 다른 플레이어를 기다리는 중입니다.</div>':''}
+    <div class="civ-grid">${Object.values(CIVS).map(c=>`<button class="civ-card ${UI.selCiv===c.id?'sel':''}" data-act="civ-pick" data-id="${c.id}" aria-pressed="${UI.selCiv===c.id}">
+      <div class="sym" aria-hidden="true">${c.sym}</div><h4>${c.name}</h4><div class="theme">${c.theme}</div>
+      <ul class="plain small">${c.traits.map(t=>`<li>${t}</li>`).join('')}</ul>
+      ${Object.values(UNITS).filter(u=>u.civ===c.id).map(u=>`<div class="small"><b>★ ${u.name}</b> <span class="muted">${esc(u.abilities.join(' '))} — ${BUILDINGS[u.requires].name}을 지은 뒤 옆의 보병을 강화 (${u.upgradeCost}점)</span></div>`).join('')}
+      <span class="tag wip" style="margin-top:6px">그 밖의 능력 미확정</span></button>`).join('')}</div>
+  </div>`;
+}
+
+function viewPlacement(){
+  const p=G.players[UI.viewer];
+  const selU = UI.selUnit!=null ? Game.unit(G,UI.selUnit) : null;
+  const hq=Purchase.hqOf(G,p.id), selHQ=UI.selHQ && hq;
+  const hl=new Set();
+  if((UI.selReserve || selU || selHQ) && !isWaiting()) Board.zoneTiles(G.board,p.id).forEach(k=>{ if(Purchase.canPlaceAt(G,p.id,k)) hl.add(k); });
+  const mine=Game.unitsOf(G,p.id), resN=Purchase.reserveCount(p), wait=isWaiting();
+  if(UI.pop && !wait) hl.add(UI.pop.k);
+  const board=boardSVG({viewer:p.id,hl,sel:selU?Hex.key(selU.q,selU.r):(selHQ?Hex.key(hq.q,hq.r):(UI.pop?UI.pop.k:null))});
+  const ready=resN===0&&mine.length>0&&!!hq&&!wait;
+  const hud=`<div class="hud"><span>남은 포인트 <span class="pts">${p.points}</span>/${CONFIG.startPoints}</span><span class="muted">배치 ${mine.length}개${resN?` · 대기 ${resN}개`:''}</span>
+    <span class="${hq?'muted':''}" style="${hq?'':'color:var(--danger);font-weight:700'}">${hq?'본진 ✓':'본진을 놓으세요'}</span><span class="spacer"></span>
+    ${(resN||!hq)&&!wait?'<button class="btn small" data-act="auto-place">자동 배치</button>':''}
+    <button class="btn small primary" data-act="place-done" ${ready?'':'disabled'}>${wait?'제출 완료':'배치 완료'}</button></div>`;
+  let pop='';
+  if(!wait && selHQ) pop=popHTML(Hex.key(hq.q,hq.r),`본진 (${hq.q},${hq.r}) · 내구도 ${BUILDINGS.hq.durability}`,'시작 영역의 빈 칸을 누르면 본진을 옮깁니다. 파괴되면 탈락합니다.','<button class="btn ghost" data-act="deselect">닫기</button>');
+  else
+  if(!wait && selU) pop=popHTML(Hex.key(selU.q,selU.r),`${UNITS[selU.type].name} (${selU.q},${selU.r})`,'시작 영역의 빈 칸을 누르면 그 칸으로 옮깁니다.',
+    `<button class="btn danger" data-act="sell-unit">판매 (+${UNITS[selU.type].cost}점)</button><button class="btn" data-act="unplace">배치 대기로</button><button class="btn ghost" data-act="deselect">닫기</button>`);
+  else if(!wait && UI.pop) pop=popHTML(UI.pop.k,'이 칸에 배치',`남은 포인트 ${p.points}점`,
+    (hq?'':'<button class="btn primary" data-act="quick-hq">본진 놓기</button>')+Rules.unitsFor(p.civ).map(u=>{ const rv=p.reserve[u.id]||0; return `<button class="btn" data-act="quick-place" data-type="${u.id}" ${rv||p.points>=u.cost?'':'disabled'}>${u.civ?'★ ':''}${u.name} ${rv?`(대기 ${rv})`:`${u.cost}점`}</button>`; }).join('')+'<button class="btn ghost" data-act="pop-close">닫기</button>');
+  return `${topbar(`<span><span class="dot" style="background:${p.color}"></span>${esc(p.name)} · ${CIVS[p.civ].name} 문명</span><span class="muted">기물 구매와 배치</span>`)}
+  <div class="layout">
+    <div class="board-wrap">${hud}${board}${pop}${legendHTML(false)}</div>
+    <div class="side">
+      ${onlineBanner()}
+      ${wait?'<div class="banner">배치를 제출했습니다. 다른 플레이어를 기다리는 중입니다.</div>':''}
+      <div class="panel"><h4>남은 기물 포인트</h4><div class="big">${p.points} <span class="muted small">/ ${CONFIG.startPoints}</span></div>
+        <div class="small muted">남은 포인트는 게임 중 건물을 짓는 데 쓸 수 있습니다.</div></div>
+      <div class="panel"><h4>기물 구매</h4>
+        ${Rules.unitsFor(p.civ).map(u=>`<div class="row"><span><b>${u.civ?'★ ':''}${u.name}</b> <span class="muted small">${u.cost}점 · 체력 ${u.stats.hp}${u.stats.atk?` · 피해 ${u.stats.atk}`:''}${u.stats.range>1?` · 사거리 ${u.stats.range}`:''}${u.stats.move?` · 이동 ${u.stats.move}칸`:''}${u.moveStyle==='charge'?' · 돌격':''}${u.canBuild?' · 건설':''}</span></span>
+          <button class="btn small" data-act="buy" data-type="${u.id}" ${p.points<u.cost||wait?'disabled':''}>구매</button></div>`).join('')}
+      </div>
+      <div class="panel"><h4>배치 대기 <span class="tag">${resN}개</span></h4>
+        ${resN?Object.keys(p.reserve).filter(t=>p.reserve[t]>0).map(t=>`<div class="row"><span>${UNITS[t].name} × ${p.reserve[t]}</span>
+          <span><button class="btn small ${UI.selReserve===t?'active':''}" data-act="sel-reserve" data-type="${t}">배치하기</button>
+          <button class="btn small ghost danger" data-act="sell-reserve" data-type="${t}" aria-label="${UNITS[t].name} 1개 환불">환불</button></span></div>`).join('')
+          :'<div class="muted small">구매한 기물이 여기에 쌓입니다.</div>'}
+        ${resN?'<button class="btn small" data-act="auto-place" style="margin-top:8px">남은 기물 자동 배치</button>':''}
+      </div>
+      ${selU&&!wait?`<div class="panel"><h4>선택한 기물</h4><div>${UNITS[selU.type].name} (${selU.q},${selU.r})</div>
+        <div class="small muted">시작 영역의 빈 칸을 누르면 그 칸으로 옮깁니다.</div>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="btn small" data-act="unplace">배치 대기로</button><button class="btn small danger" data-act="sell-unit">판매 (${UNITS[selU.type].cost}점 환불)</button><button class="btn small ghost" data-act="deselect">선택 해제</button></div></div>`:''}
+      <div class="panel"><h4>배치한 기물 <span class="tag">${mine.length}개</span></h4>
+        <div class="small muted">${Rules.unitsFor(p.civ).map(u=>`${u.name} ${mine.filter(x=>x.type===u.id).length}`).join(' · ')}</div>
+        <p class="hint ${UI.hintWarn?'warn':''}">${esc(UI.hint)}</p>
+        <button class="btn primary" data-act="place-done" style="width:100%;margin-top:6px" ${(resN===0&&mine.length>0&&!wait)?'':'disabled'}>${wait?'제출 완료':'배치 완료'}</button>
+        ${resN?'<div class="small muted" style="margin-top:6px">구매한 기물을 모두 배치해야 완료할 수 있습니다.</div>':''}
+        ${!hq?'<div class="small" style="margin-top:6px;color:var(--danger)">본진을 시작 영역에 놓아야 완료할 수 있습니다. 빈 칸을 누르고 본진 놓기를 고르세요.</div>':''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function viewGame(){
+  const p=G.players[UI.viewer];
+  const pos=Plan.positions(G,p.id,UI.plan);
+  const selU=UI.selUnit!=null?Game.unit(G,UI.selUnit):null;
+  let hl=new Set(), vr=new Set(), path=new Set();
+  const ownKeys=()=>Game.unitsOf(G,p.id).forEach(u=>{ const c=pos.get(u.id); hl.add(Hex.key(c[0],c[1])); });
+  if(UI.mode==='move'){ if(selU) hl=new Set(Plan.moveTargets(G,p.id,UI.plan,selU.id)); else ownKeys(); }
+  if(UI.mode==='build'){ if(selU&&Plan.canPlanBuild(G,p.id,UI.plan,selU.id)) hl=new Set(Plan.buildTargets(G,p.id,UI.plan,selU.id,UI.buildType)); else Game.unitsOf(G,p.id).filter(u=>Plan.canPlanBuild(G,p.id,UI.plan,u.id)).forEach(u=>{ const c=pos.get(u.id); hl.add(Hex.key(c[0],c[1])); }); }
+  let atk=new Set();
+  if(!UI.mode && selU && !isWaiting() && UI.plan.length<CONFIG.actionsPerTurn){ hl=new Set(Plan.moveTargets(G,p.id,UI.plan,selU.id)); atk=new Set(Plan.attackTargets(G,p.id,UI.plan,selU.id)); }
+  if(UI.mode==='attack'){ if(selU) atk=new Set(Plan.attackTargets(G,p.id,UI.plan,selU.id)); else Game.unitsOf(G,p.id).filter(u=>Plan.attackTargets(G,p.id,UI.plan,u.id).length).forEach(u=>{ const c=pos.get(u.id); hl.add(Hex.key(c[0],c[1])); }); }
+  if(UI.mode==='upgrade') Game.unitsOf(G,p.id).filter(u=>{ const i=Plan.upgradeInfo(G,p.id,UI.plan,u.id); return i&&i.affordable; }).forEach(u=>{ const c=pos.get(u.id); hl.add(Hex.key(c[0],c[1])); });
+  const selB = UI.selBld!=null ? (G.buildings||[]).find(b=>b.id===UI.selBld && b.owner===p.id) : null;
+  if(UI.mode==='recruit'){ if(selB && UI.recruitType) hl=new Set(Plan.recruitTargets(G,p.id,UI.plan,selB.id)); else (G.buildings||[]).filter(b=>Plan.canRecruitFrom(G,p.id,UI.plan,b.id)).forEach(b=>hl.add(Hex.key(b.q,b.r))); }
+  if(UI.mode==='defend') Game.unitsOf(G,p.id).filter(u=>Plan.canDefend(G,p.id,UI.plan,u.id)).forEach(u=>{ const c=pos.get(u.id); hl.add(Hex.key(c[0],c[1])); });
+  if(UI.mode==='scout') Game.unitsOf(G,p.id).filter(u=>Plan.canScout(G,p.id,UI.plan,u.id)).forEach(u=>{ const c=pos.get(u.id); hl.add(Hex.key(c[0],c[1])); });
+  if(selU && !UI.mode) Hex.range([selU.q,selU.r],Rules.visionRange(G,selU)).forEach(([q,r])=>{ const k=Hex.key(q,r); if(G.board.tiles.has(k)) vr.add(k); });
+  UI.plan.filter(a=>a.type==='move').forEach(a=>{ const u=G.units.find(x=>x.id===a.unitId); if(u&&Rules.isCharge(u)) Plan.chargePath(a.from,a.to).forEach(c=>path.add(Hex.key(c[0],c[1]))); });
+  const arrows=UI.plan.filter(a=>a.type==='move').map(a=>[a.from,a.to]);
+  const ghosts=[]; pos.forEach((c,id)=>{ const u=Game.unit(G,id); if(u && (u.q!==c[0]||u.r!==c[1])) ghosts.push(c); });
+  const selKey = selU ? Hex.key(...pos.get(selU.id)) : (selB ? Hex.key(selB.q,selB.r) : null);
+  const myScouts=Vision.activeScouts(G,p.id), scoutTiles=new Set();
+  myScouts.forEach(sc=>Vision.scoutTiles(G,sc).forEach(k=>scoutTiles.add(k)));
+  const plannedBuilds=UI.plan.filter(a=>a.type==='build');
+  const plannedRecruits=UI.plan.filter(a=>a.type==='recruit');
+  const defended=UI.plan.filter(a=>a.type==='defend').map(a=>pos.get(a.unitId)).filter(Boolean);
+  const board=boardSVG({viewer:p.id,hl,atk,vr,path,sel:selKey,arrows,ghosts,scoutTiles,plannedBuilds,plannedRecruits,defended});
+  const waiting=isWaiting(), subs=submittedSeats();
+  const n=UI.plan.length, full=n>=CONFIG.actionsPerTurn, ce=G.centerEffect, cost=Plan.plannedCost(UI.plan);
+  const units=Game.unitsOf(G,p.id), blds=Game.buildingsOf(G,p.id);
+  const slots=[]; for(let i=0;i<CONFIG.actionsPerTurn;i++){ const a=UI.plan[i];
+    slots.push(`<div class="slot ${a?'':'empty'}"><span class="n">${i+1}</span><span class="txt">${a?`${ACTIONS[a.type].icon} ${ActionHandlers[a.type].describe(G,a)}`:'비어 있음'}</span>${a&&i===n-1?`<button class="btn small ghost" data-act="plan-undo" aria-label="${i+1}번 행동 취소">취소</button>`:''}</div>`); }
+  const submitted=subs.length+(UI.online?G.players.filter(x=>x.type==='ai').length:0);
+  const conn=UI.online&&Net.main?Net.main.conn||[]:[];
+  const buildPicker = UI.mode==='build' ? `<div class="actions" style="margin-top:8px">${Rules.buildable(p.civ).map(B=>`<button class="btn small ${UI.buildType===B.id?'active':''}" data-act="build-type" data-type="${B.id}" ${p.points-cost<B.cost?'disabled':''}>${B.name} · ${B.cost}점 · 내구 ${B.durability}</button>`).join('')}</div>` : '';
+  return `${topbar(`<span><b>턴 ${G.turn}</b></span><span class="muted">행동 계획 중 · 제출 ${submitted}/${G.players.length}</span><span><span class="dot" style="background:${p.color}"></span>${esc(p.name)} · ${CIVS[p.civ].name}</span>`)}
+  <div class="layout">
+    <div class="board-wrap">${gameHud(n,full,waiting)}${board}${selB?buildingPop(p,selB,waiting,full,cost):gamePop(p,selU,selKey,waiting,full,cost)}${legendHTML(true)}</div>
+    <div class="side">
+      ${onlineBanner()}
+      ${waiting?`<div class="banner">턴 ${G.turn} 행동을 제출했습니다. 다른 플레이어를 기다리는 중입니다.</div>`:''}
+      ${p.eliminated?'<div class="banner err">본진이 파괴되어 탈락했습니다. 남은 게임을 관전합니다.</div>':(units.length===0?'<div class="banner err">남은 기물이 없습니다. 본진이 버티는 동안은 탈락하지 않습니다.</div>':'')}
+      <div class="panel" ${waiting?'style="opacity:.55;pointer-events:none"':''}><h4>행동 계획 <span class="tag">남은 행동 ${CONFIG.actionsPerTurn-n}회</span></h4>
+        <div class="slots">${slots.join('')}</div>
+        <div class="actions">${Object.values(ACTIONS).map(a=>`<button class="btn ${UI.mode===a.id?'active':''}" data-act="mode" data-type="${a.id}" ${(!a.implemented||full)?'disabled':''} title="${esc(a.desc)}">${a.icon} ${a.name}${a.implemented?'':' <span class="tag wip">미구현</span>'}</button>`).join('')}</div>
+        ${buildPicker}
+        <p class="hint ${UI.hintWarn?'warn':''}">${esc(UI.hint)}</p>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn small" data-act="plan-clear" ${n?'':'disabled'}>모두 지우기</button>
+          <button class="btn primary" data-act="plan-submit" style="flex:1" ${(!full&&!CONFIG.temp.allowPartialSubmit)?'disabled':''}>행동 제출 (${n}/${CONFIG.actionsPerTurn})</button>
+        </div>
+        ${!full?'<div class="small muted" style="margin-top:6px">빈 슬롯은 행동 없음으로 처리됩니다. (임시 규칙)</div>':''}
+      </div>
+      <div class="panel"><h4>중앙 특별 구역 ${p.centerActive?'<span class="tag" style="color:var(--ok)">내 효과 적용 중</span>':'<span class="tag">적용 안 됨</span>'}</h4>
+        <div class="effect"><b>${esc(ce.name)}</b> <span class="tag">${ce.kind==='buff'?'버프':'디버프'}</span>${ce.sample?' <span class="tag temp">샘플</span>':''}<br><span class="small muted">${esc(ce.desc)}</span></div>
+        <div class="small muted" style="margin-top:6px">${p.centerActive?`내 기물이 중앙 ${CenterZone.occupiedTiles(G,p.id).length}칸을 차지하고 있습니다.`:'내 기물이 중앙 칸에 들어가면 적용됩니다.'}</div></div>
+      <div class="panel"><h4>내 정보</h4>
+        <div class="row"><span>문명</span><span>${CIVS[p.civ].sym} ${CIVS[p.civ].name} <span class="muted small">${CIVS[p.civ].theme}</span></span></div>
+        <div class="row"><span>턴당 수입</span><span>+${Rules.incomeOf(G,p.id)}점 <span class="muted small">(보급소 ${Game.buildingsOf(G,p.id).filter(b=>b.type==='depot'&&b.done!==false).length}곳)</span></span></div>
+        <div class="row"><span>보유 포인트</span><span>${p.points}점${cost?` <span class="muted small">(건설 예정 −${cost})</span>`:''}</span></div>
+        <div class="row"><span>본진</span><span>${(h=>h?`(${h.q},${h.r}) · 내구도 <b>${h.dur}</b>/${h.max}`:'<span style="color:var(--danger)">파괴됨</span>')(Purchase.hqOf(G,p.id))}</span></div>
+        <div class="row"><span>기물 · 건물</span><span>${units.length}개 · ${blds.length}개</span></div></div>
+      <div class="panel"><h4>내 기물 <span class="small muted">눌러서 시야 보기</span></h4><div class="scroll-list">
+        ${units.map(u=>`<button class="unit-row ${UI.selUnit===u.id?'sel':''}" data-act="sel-unit" data-id="${u.id}"><span class="chip" style="background:${p.color}">${UNITS[u.type].short}</span>
+          <span style="flex:1">${UNITS[u.type].name} <span class="muted small">(${u.q},${u.r})</span></span>
+          <span class="small">체력 ${u.hp}/${Rules.maxHp(u)}</span></button>`).join('') || '<div class="muted small">남은 기물이 없습니다.</div>'}
+      </div></div>
+      <div class="panel"><h4>내 건물 <span class="tag">${blds.length}개</span></h4>
+        ${blds.length?blds.map(b=>`<div class="row"><span>${BUILDINGS[b.type].name} <span class="muted small">(${b.q},${b.r})</span>${b.done===false?` <span class="tag temp">공사 중 · 턴 ${b.completeAt} 끝에 완공</span>`:''}</span><span class="small">내구도 ${b.dur}/${b.max}</span></div>`).join(''):'<div class="small muted">기술병을 누르면 옆 칸에 건물을 지을 수 있습니다.</div>'}</div>
+      <div class="panel"><h4>정찰 중인 지역 <span class="tag">${myScouts.length}곳</span></h4>
+        ${myScouts.length?myScouts.map(sc=>`<div class="row"><span>◉ (${sc.q},${sc.r}) 주변 ${sc.radius}칸</span><span class="small muted">턴 ${sc.until}까지</span></div>`).join(''):'<div class="small muted">정찰 행동을 쓰면 기물이 선 자리 주변이 다음 턴까지 보입니다.</div>'}</div>
+      <div class="panel"><h4>플레이어</h4>
+        ${G.players.map(x=>{ const lost=UI.online&&x.type==='human'&&conn[x.id]===false;
+          return `<div class="row"><span><span class="dot" style="background:${x.color}"></span>${esc(x.name)} <span class="muted small">${x.type==='ai'?'컴퓨터':'사람'}${lost?' · 연결 끊김':''}${x.eliminated?' · <b style="color:var(--danger)">탈락</b>':''}</span></span>
+          <span class="small">${CIVS[x.civ].name} · ${(subs.includes(x.id)||(UI.online&&x.type==='ai'))?'제출 완료':(x.id===p.id?'계획 중':'대기')}
+          ${lost&&Net.isHost?` <button class="btn small" data-act="net-replace" data-seat="${x.id}">컴퓨터로 대체</button>`:''}</span></div>`; }).join('')}</div>
+      ${UI.online&&Net.isHost&&Net.mode==='manual'?invitePanel(true):''}
+      <div class="panel"><h4>기록</h4><div class="log">${G.log.slice().reverse().map(e=>{ const t=Log.textFor(e,p.id); return t?`<div>턴 ${e.turn}${e.slot?` · 슬롯 ${e.slot}`:''} — ${esc(t)}</div>`:''; }).join('')}</div></div>
+    </div>
+  </div>`;
+}
+
+function popHTML(k,title,sub,btns){
+  return `<div class="pop" data-pk="${k}" role="dialog" aria-label="${esc(title)}"><div class="t">${esc(title)}</div>${sub?`<div class="s">${esc(sub)}</div>`:''}<div class="btns">${btns}</div></div>`;
+}
+function gameHud(n,full,waiting){
+  const chips=[]; for(let i=0;i<CONFIG.actionsPerTurn;i++){ const a=UI.plan[i]; chips.push(`<span class="sl ${a?'':'empty'}">${i+1} ${a?`${ACTIONS[a.type].icon} ${ACTIONS[a.type].name}`:'—'}</span>`); }
+  return `<div class="hud"><b>턴 ${G.turn}</b>${chips.join('')}<span class="spacer"></span>
+    ${waiting?'<span class="muted">제출 완료 · 대기 중</span>':`${n?'<button class="btn small" data-act="plan-undo">되돌리기</button>':''}<button class="btn small primary" data-act="plan-submit">제출 ${n}/${CONFIG.actionsPerTurn}</button>`}</div>`;
+}
+function buildingPop(p,b,waiting,full,cost){
+  if(waiting) return '';
+  const B=BUILDINGS[b.type], k=Hex.key(b.q,b.r);
+  const title=`${B.name} (${k}) · 내구도 ${b.dur}/${b.max}`;
+  if(b.done===false) return popHTML(k,title,`공사 중 — 턴 ${b.completeAt}이 끝나면 완공`,'<button class="btn ghost" data-act="deselect">닫기</button>');
+  if(!B.summon) return popHTML(k,title,B.desc+(B.income?` 현재 턴당 +${B.income}점.`:''),'<button class="btn ghost" data-act="deselect">닫기</button>');
+  if(full) return popHTML(k,title,'행동 3개를 모두 계획했습니다.','<button class="btn primary" data-act="plan-submit">제출</button><button class="btn ghost" data-act="deselect">닫기</button>');
+  if(UI.mode==='recruit' && UI.recruitType) return popHTML(k,`${UNITS[UI.recruitType].name} 모집`,'건물 옆의 강조된 칸을 누르면 그 자리에 소환됩니다.','<button class="btn" data-act="recruit-cancel">취소</button>');
+  if(!Plan.canRecruitFrom(G,p.id,UI.plan,b.id)) return popHTML(k,title,'이번 턴에는 이 건물에서 이미 모집을 계획했습니다.','<button class="btn ghost" data-act="deselect">닫기</button>');
+  const left=p.points-cost, room=Plan.recruitTargets(G,p.id,UI.plan,b.id).length;
+  return popHTML(k,title,room?`모집할 기물을 고르세요 · 남은 포인트 ${left}점`:'옆에 빈 칸이 없어 모집할 수 없습니다.',
+    Rules.unitsFor(p.civ).map(U=>`<button class="btn" data-act="pick-recruit" data-type="${U.id}" ${U.cost>left||!room?'disabled':''}>✚ ${U.name} ${U.cost}점</button>`).join('')+'<button class="btn ghost" data-act="deselect">닫기</button>');
+}
+function gamePop(p,selU,k,waiting,full,cost){
+  if(waiting || !selU || !k) return '';
+  const name=`${UNITS[selU.type].name} (${k}) · 체력 ${selU.hp}/${Rules.maxHp(selU)}`;
+  if(full) return popHTML(k,'행동 3개를 모두 계획했습니다','',`<button class="btn primary" data-act="plan-submit">제출</button><button class="btn" data-act="plan-undo">되돌리기</button><button class="btn ghost" data-act="deselect">닫기</button>`);
+  if(UI.mode==='build'){ const B=BUILDINGS[UI.buildType]; return popHTML(k,`${B.name} 건설`,'기물 옆의 강조된 칸을 누르세요.',`<button class="btn" data-act="build-cancel">취소</button>`); }
+  if(UI.mode) return '';
+  const tips=[];
+  const site=Game.siteOf(G,selU.id);
+  if(site) tips.push(`${BUILDINGS[site.type].name} 공사 중 — 움직이면 취소됩니다 (턴 ${site.completeAt} 끝에 완공)`);
+  else if(Plan.movesBuilder(G,UI.plan,selU.id)) tips.push('이번 턴 건설 계획 — 움직이면 취소됩니다');
+  if(Rules.isCharge(selU)) tips.push('파란 칸으로 직선 돌격 (길의 상대에게 피해 '+Rules.chargeDamage(G,selU)+')');
+  else tips.push('파란 칸: 이동');
+  if(Rules.canAttack(selU)) tips.push(`빨간 칸: 공격 (피해 ${Rules.attackDamage(G,selU)})`);
+  const left=p.points-cost;
+  if(Plan.canPlanBuild(G,p.id,UI.plan,selU.id) && Plan.buildTargets(G,p.id,UI.plan,selU.id,'depot').length) tips.push('옆에 자원 칸이 있습니다 — 보급소를 지을 수 있습니다');
+  const up=Plan.upgradeInfo(G,p.id,UI.plan,selU.id);
+  const btns=(up?`<button class="btn primary" data-act="pop-upgrade" ${up.affordable?'':'disabled'}>▲ ${UNITS[up.into].name}로 강화 ${up.cost}점</button>`:'')
+    +(Plan.canDefend(G,p.id,UI.plan,selU.id)?'<button class="btn" data-act="pop-defend">◈ 방어</button>':'')
+    +(Plan.canScout(G,p.id,UI.plan,selU.id)?'<button class="btn" data-act="pop-scout">◉ 정찰</button>':'')
+    +(Plan.canPlanBuild(G,p.id,UI.plan,selU.id)?Rules.buildable(p.civ).map(B=>`<button class="btn" data-act="pop-build" data-type="${B.id}" ${B.cost>left||!Plan.buildTargets(G,p.id,UI.plan,selU.id,B.id).length?'disabled':''}>▦ ${B.name} ${B.cost}점</button>`).join(''):'')
+    +'<button class="btn ghost" data-act="deselect">닫기</button>';
+  return popHTML(k,name,tips.join(' · '),btns);
+}
+function placePop(){
+  const pop=$app.querySelector('.pop'); if(!pop) return;
+  const svg=$app.querySelector('svg.board'), wrap=pop.parentElement; if(!svg||!svg.getScreenCTM) return;
+  const m=svg.getScreenCTM(); if(!m) return;
+  const [q,r]=Hex.parse(pop.dataset.pk), [x,y]=Hex.toPixel(q,r,SIZE);
+  const pt=svg.createSVGPoint(); pt.x=x; pt.y=y;
+  const sp=pt.matrixTransform(m), wr=wrap.getBoundingClientRect();
+  const w=pop.offsetWidth, h=pop.offsetHeight, gap=SIZE*m.a*0.9+6;
+  const cx=sp.x-wr.left, cy=sp.y-wr.top;
+  let top=cy-gap-h; if(top<4) top=cy+gap;
+  pop.style.left=Math.max(4,Math.min(wr.width-w-4,cx-w/2))+'px';
+  pop.style.top=Math.min(top,wr.height-h-4)+'px';
+  pop.style.visibility='visible';
+}
+
+function onlineBanner(){
+  if(!UI.online) return '';
+  const lost = !Net.isHost && Net.linkLost;
+  return `${Net.error?`<div class="banner err">${esc(Net.error)}</div>`:''}
+    ${lost?`<div class="banner err">호스트와 연결이 끊겼습니다. ${Net.mode==='room'?`<button class="btn small" data-act="net-rejoin">다시 연결</button>`:'호스트에게 새 초대 코드를 받아 온라인 게임 화면에서 다시 참가하세요. 같은 기기라면 자리가 그대로 돌아옵니다.'}</div>`:''}
+    <div class="small muted">온라인 게임 · ${Net.mode==='room'?`방 코드 <b>${esc(Net.code||'')}</b>`:'코드 직접 교환'}${Net.isHost?' · 이 기기가 호스트 (화면을 닫지 마세요)':''}</div>`;
+}
+
+function copyBox(field,label){
+  const v=UI[field]; if(!v) return '';
+  return `<div class="field"><label>${label}</label><textarea readonly rows="3" data-field="${field}">${esc(v)}</textarea>
+    <button class="btn small" data-act="copy" data-field="${field}">${UI.copied===field?'복사됨':'복사'}</button></div>`;
+}
+
+function invitePanel(compact){
+  return `<div class="${compact?'panel':'box'}" style="margin-top:${compact?0:14}px"><h4 style="margin:0 0 6px">${compact?'참가자 다시 연결':'참가자 초대 (코드 직접 교환)'}</h4>
+    <p class="small muted" style="margin:0 0 8px">참가자 한 명마다: 초대 코드를 만들어 보내고 → 참가자가 보낸 응답 코드를 붙여넣으면 연결됩니다.${compact?' 연결이 끊긴 사람에게 새 초대 코드를 보내면 원래 자리로 돌아옵니다.':''}</p>
+    <button class="btn small" data-act="net-invite" ${UI.netBusy?'disabled':''}>${UI.inviteCode?'새 초대 코드 만들기':'초대 코드 만들기'}</button>
+    ${copyBox('inviteCode','초대 코드 — 참가자에게 보내세요')}
+    ${UI.inviteCode?`<div class="field"><label for="ai">참가자가 보낸 응답 코드</label><textarea id="ai" rows="3" data-field="answerInput">${esc(UI.answerInput)}</textarea>
+      <button class="btn small primary" data-act="net-accept" ${UI.netBusy?'disabled':''}>연결하기</button></div>`:''}
+    ${Net.status?`<p class="small" style="margin:6px 0 0">${esc(Net.status)}</p>`:''}
+  </div>`;
+}
+
+function viewOnline(){
+  if(!Net.rtcSupported()) return `${topbar()}<div class="page"><div class="banner err">이 브라우저는 WebRTC를 지원하지 않아 온라인 게임을 할 수 없습니다.</div></div>`;
+  const tab=UI.onlineTab;
+  const room=`
+    <div class="two">
+      <div class="box"><h3 style="margin-top:0">방 만들기</h3>
+        <p class="small muted">이 기기가 호스트가 되어 게임 처리를 맡습니다. 5자리 방 코드를 친구에게 알려 주세요.</p>
+        <button class="btn primary" data-act="net-host-room" ${UI.netBusy?'disabled':''}>방 만들기</button></div>
+      <div class="box"><h3 style="margin-top:0">방 코드로 참가</h3>
+        <div class="field"><label for="nc">방 코드</label><input id="nc" data-field="netCode" value="${esc(UI.netCode)}" maxlength="5" autocapitalize="characters" placeholder="ABCDE"></div>
+        <button class="btn" data-act="net-join-room" ${UI.netBusy?'disabled':''}>참가하기</button></div>
+    </div>
+    <p class="small muted">처음 연결할 때만 PeerJS 공개 연결 서버로 서로를 찾고, 게임 데이터는 기기끼리 직접 주고받습니다. 연결 서버가 막혀 있거나 불안정하면 코드 직접 교환을 쓰세요.</p>`;
+  const manual=`
+    <div class="two">
+      <div class="box"><h3 style="margin-top:0">게임 만들기</h3>
+        <p class="small muted">이 기기가 호스트가 됩니다. 대기실에서 참가자마다 초대 코드를 만들어 보내세요.</p>
+        <button class="btn primary" data-act="net-host-manual">게임 만들기</button></div>
+      <div class="box"><h3 style="margin-top:0">초대 코드로 참가</h3>
+        <div class="field"><label for="oi">호스트가 보낸 초대 코드</label><textarea id="oi" rows="3" data-field="offerInput">${esc(UI.offerInput)}</textarea></div>
+        <button class="btn" data-act="net-answer" ${UI.netBusy||!UI.offerInput?'disabled':''}>응답 코드 만들기</button>
+        ${copyBox('answerCode','응답 코드 — 호스트에게 보내세요')}
+        ${UI.answerCode?'<p class="small">호스트가 응답 코드를 붙여넣으면 자동으로 연결됩니다. 이 화면을 열어 두세요.</p>':''}</div>
+    </div>
+    <p class="small muted">서버 없이 연결합니다. 코드는 카카오톡 등으로 복사해서 주고받으면 됩니다. 일부 공유기나 학교·회사 와이파이는 기기끼리 통신을 막아 연결이 안 될 수 있습니다.</p>`;
+  return `${topbar()}<div class="page"><div class="page-head"><div><h2>온라인 게임</h2><div class="muted">각자 자기 기기로 함께 플레이합니다.</div></div><button class="btn" data-act="go" data-to="menu">돌아가기</button></div>
+    <div class="field"><label for="nn">내 이름</label><input id="nn" data-field="netName" value="${esc(UI.netName)}" maxlength="12" placeholder="예: 백관"></div>
+    <div style="display:flex;gap:6px;margin:6px 0 14px" role="tablist">
+      <button class="btn ${tab==='room'?'active':''}" data-act="online-tab" data-tab="room" role="tab" aria-selected="${tab==='room'}">방 코드로 연결</button>
+      <button class="btn ${tab==='manual'?'active':''}" data-act="online-tab" data-tab="manual" role="tab" aria-selected="${tab==='manual'}">코드 직접 교환 (서버 없음)</button>
+    </div>
+    ${tab==='room'?room:manual}
+    ${Net.error?`<p class="hint warn">${esc(Net.error)}</p>`:''}
+  </div>`;
+}
+
+function viewLobby(){
+  const m=Net.main;
+  if(!m) return `${topbar()}<div class="page"><div class="box">호스트와 연결하는 중입니다…</div>${onlineBanner()}</div>`;
+  const seated=Net.mySeat>=0, conn=m.conn||[];
+  const seats=m.seats.map((s,i)=>`<div class="seat"><span class="dot" style="background:${PLAYER_COLORS[i]};width:16px;height:16px"></span>
+    <span>${s.type==='human'?`<b>${esc(s.name)}</b>${s.uid===Net.clientId?' <span class="tag">나</span>':''}${i===0?' <span class="tag">호스트</span>':''}${conn[i]===false?' <span class="tag wip">연결 끊김</span>':''}`:(s.type==='ai'?'컴퓨터':'<span class="muted">빈 자리 — 참가를 기다리는 중</span>')}</span>
+    ${Net.isHost&&i>0&&m.phase==='lobby'?(s.type==='human'?`<button class="btn small ghost danger" data-act="net-kick" data-seat="${i}">내보내기</button>`:`<select data-seat-net="${i}" aria-label="${i+1}번 자리"><option value="open" ${s.type==='open'?'selected':''}>빈 자리</option><option value="ai" ${s.type==='ai'?'selected':''}>컴퓨터</option></select>`):'<span></span>'}</div>`).join('');
+  return `${topbar()}<div class="page">
+    <div class="page-head"><div><h2>대기실</h2><div class="muted">${m.mode==='room'?'다른 기기에서 이 페이지를 열고 온라인 게임 → 방 코드로 연결에 아래 코드를 입력하세요.':'참가자마다 아래에서 초대 코드를 만들어 보내세요.'}</div></div></div>
+    ${onlineBanner()}
+    ${m.mode==='room'?`<div class="box" style="text-align:center;margin-top:10px"><div class="muted small">방 코드</div><div class="code">${esc(m.code)}</div></div>`:''}
+    ${Net.isHost&&m.mode==='manual'?invitePanel(false):''}
+    <h3>자리</h3><div class="box">${seats}</div>
+    ${m.phase!=='lobby'&&!seated?'<div class="banner err" style="margin-top:12px">게임이 이미 시작되어 자리를 받지 못했습니다.</div>':''}
+    ${m.phase==='lobby'&&!seated?'<div class="banner" style="margin-top:12px">호스트 기기에 연결되었습니다. 자리가 배정되면 표시됩니다. 자리가 모두 찼다면 배정되지 않습니다.</div>':''}
+    <div style="margin-top:16px">${Net.isHost&&m.phase==='lobby'?`<button class="btn primary" data-act="net-start">게임 시작 (빈 자리는 컴퓨터로 채움)</button>`:(seated&&m.phase==='lobby'?'<div class="banner">호스트가 게임을 시작하기를 기다리는 중입니다.</div>':'')}</div>
+  </div>`;
+}
+
+function viewOverlay(){
+  const o=UI.overlay; if(!o) return '';
+  return `<div class="overlay ${o.opaque?'opaque':''}" role="dialog" aria-modal="true"><div class="ov-card"><h3>${esc(o.title)}</h3><div>${o.body||''}</div><button class="btn primary" data-act="overlay-close">${esc(o.btn||'확인')}</button></div></div>`;
+}
+
+function render(){
+  let html='';
+  const hide = UI.overlay && UI.overlay.opaque;
+  if(!hide){
+    switch(UI.screen){
+      case 'menu': html=viewMenu(); break;
+      case 'settings': html=viewSettings(); break;
+      case 'rules': html=viewRules(); break;
+      case 'online': html=viewOnline(); break;
+      case 'lobby': html=viewLobby(); break;
+      case 'civ': html=viewCiv(); break;
+      case 'placement': html=viewPlacement(); break;
+      case 'game': html=viewGame(); break;
+    }
+  }
+  // 입력 중인 칸의 포커스를 유지
+  const ae=document.activeElement, focusField=ae&&ae.dataset?ae.dataset.field:null;
+  $app.innerHTML = html + viewOverlay();
+  if(focusField){ const el=$app.querySelector(`[data-field="${focusField}"]`); if(el && !el.readOnly){ el.focus(); try{ el.setSelectionRange(el.value.length,el.value.length); }catch(e){} } }
+  placePop();
+}
+window.addEventListener('resize',()=>placePop());
+
+/* 입력 처리 */
+async function netAction(fn){
+  if(UI.netBusy) return; UI.netBusy=true; Net.error=''; render();
+  try{ await fn(); }catch(e){ Net.error=(e&&e.message)||'연결 오류가 났습니다.'; }
+  UI.netBusy=false; render();
+}
+const Handlers = {
+  go(d){
+    if(d.to==='start'){ if(!SETUP.seats.some(s=>s.type==='human')){ UI.screen='settings'; return render(); } return Flow.newGame(); }
+    if(d.to==='online') Net.error='';
+    UI.screen=d.to; render();
+  },
+  quit(){
+    const inGame = !['settings','rules','online','menu'].includes(UI.screen);
+    const msg = UI.online ? (Net.isHost?'호스트가 나가면 모두의 게임이 멈춥니다. 메인 화면의 다시 열기로 이어서 할 수 있습니다. 나갈까요?':'게임에서 나갈까요? 다시 참가하면 원래 자리로 돌아옵니다.') : '진행 중인 게임을 끝내고 메인으로 돌아갈까요?';
+    if(!inGame || confirm(msg)){
+      if(UI.online || Net.mode) Net.leave();
+      Object.assign(UI,{online:false,lastTurn:null,submittedLocal:null,inviteCode:'',answerInput:'',offerInput:'',answerCode:'',screen:'menu',overlay:null});
+      G=null; render();
+    }
+  },
+  'online-tab'(d){ UI.onlineTab=d.tab; Net.error=''; render(); },
+  'net-host-room'(){ netAction(async()=>{ UI.lastTurn=null; await Net.hostRoom(UI.netName.trim()||'호스트'); }); },
+  'net-join-room'(){ netAction(async()=>{ UI.lastTurn=null; await Net.joinRoom(UI.netCode,UI.netName.trim()||'플레이어'); }); },
+  'net-rejoin'(){ const code=Net.code, name=Net.name; netAction(async()=>{ Net.leave(); await Net.joinRoom(code,name); }); },
+  'net-host-manual'(){ UI.lastTurn=null; Net.hostManual(UI.netName.trim()||'호스트'); },
+  'net-invite'(){ netAction(async()=>{ UI.answerInput=''; await Net.createInvite(); }); },
+  'net-accept'(){ netAction(async()=>{ await Net.acceptAnswer(UI.answerInput); }); },
+  'net-answer'(){ netAction(async()=>{ UI.lastTurn=null; await Net.answerInvite(UI.offerInput,UI.netName.trim()||'플레이어'); }); },
+  'net-resume'(){ netAction(async()=>{ UI.lastTurn=null; try{ await Net.resumeHost(); }catch(e){ Net.leave(); throw e; } }); },
+  'net-start'(){ Net.hostStart(); },
+  'net-kick'(d){ Net.hostKick(Number(d.seat)); },
+  'net-replace'(d){ if(confirm('이 자리를 남은 게임 동안 컴퓨터가 맡게 할까요?')) Net.hostReplaceWithAI(Number(d.seat)); },
+  async copy(d){
+    const v=UI[d.field]||'';
+    try{ await navigator.clipboard.writeText(v); }catch(e){ const el=$app.querySelector(`[data-field="${d.field}"]`); if(el){ el.select(); try{ document.execCommand('copy'); }catch(x){} } }
+    UI.copied=d.field; render(); setTimeout(()=>{ UI.copied=''; render(); },1500);
+  },
+  'overlay-close'(){ const cb=UI.overlay&&UI.overlay.onClose; UI.overlay=null; cb?cb():render(); },
+  'civ-pick'(d){ if(isWaiting()) return; UI.selCiv=d.id; render(); },
+  'civ-confirm'(){
+    if(!UI.selCiv) return;
+    if(UI.online){ if(isWaiting()) return; UI.submittedLocal={phase:'civ',turn:G.turn}; Net.submit({civ:UI.selCiv}); render(); return; }
+    G.players[UI.viewer].civ=UI.selCiv; Flow.nextCiv();
+  },
+  buy(d){ if(isWaiting()) return; UI.pop=null; const p=G.players[UI.viewer]; if(Purchase.buy(p,d.type)){ UI.selReserve=d.type; UI.selUnit=null; setHint(`${UNITS[d.type].name}을(를) 구매했습니다. 시작 영역의 빈 칸을 눌러 배치하세요.`); } render(); },
+  'sel-reserve'(d){ if(isWaiting()) return; UI.selReserve = UI.selReserve===d.type?null:d.type; UI.selUnit=null; setHint(UI.selReserve?`${UNITS[d.type].name}을(를) 놓을 칸을 누르세요.`:''); render(); },
+  'sell-reserve'(d){ if(isWaiting()) return; const p=G.players[UI.viewer]; Purchase.sellReserve(p,d.type); if(!p.reserve[d.type]&&UI.selReserve===d.type) UI.selReserve=null; render(); },
+  'auto-place'(){ if(isWaiting()) return; Purchase.autoPlace(G,UI.viewer); UI.selHQ=false; UI.selReserve=null; setHint('남은 기물을 무작위로 배치했습니다. 기물을 눌러 옮길 수 있습니다.'); render(); },
+  unplace(){ if(isWaiting()) return; const u=Game.unit(G,UI.selUnit); if(u){ Purchase.unplace(G,u); UI.selUnit=null; } render(); },
+  'sell-unit'(){ if(isWaiting()) return; const u=Game.unit(G,UI.selUnit); if(u){ Purchase.sellUnit(G,u); UI.selUnit=null; } render(); },
+  'pick-recruit'(d){ if(UI.selBld==null) return; UI.recruitType=d.type; UI.mode='recruit'; setHint('건물 옆의 강조된 칸을 누르세요.'); render(); },
+  'recruit-cancel'(){ UI.mode=null; UI.recruitType=null; setHint(''); render(); },
+  deselect(){ UI.selBld=null; UI.recruitType=null; if(UI.mode==='recruit') UI.mode=null; UI.selUnit=null; UI.selHQ=false; UI.pop=null; if(UI.mode==='build') UI.mode=null; render(); },
+  'pop-close'(){ UI.pop=null; render(); },
+  'quick-hq'(){ if(isWaiting()||!UI.pop) return; if(Purchase.placeHQ(G,UI.viewer,UI.pop.k)) setHint('본진을 놓았습니다. 누르면 옮길 수 있습니다.'); UI.pop=null; render(); },
+  'pop-upgrade'(){
+    if(UI.selUnit==null || UI.plan.length>=CONFIG.actionsPerTurn) return;
+    const i=Plan.upgradeInfo(G,UI.viewer,UI.plan,UI.selUnit); if(!i || !i.affordable){ setHint('포인트가 부족하거나 강화할 수 없는 기물입니다.',true); return render(); }
+    UI.plan.push({type:'upgrade',unitId:UI.selUnit,into:i.into}); setHint(`${UNITS[i.into].name}로 강화를 계획했습니다.`); render();
+  },
+  'pop-defend'(){ if(UI.selUnit==null || UI.plan.length>=CONFIG.actionsPerTurn || !Plan.canDefend(G,UI.viewer,UI.plan,UI.selUnit)) return;
+    UI.plan.push({type:'defend',unitId:UI.selUnit}); setHint('방어를 계획했습니다. 이 기물은 이번 턴 피해를 받지 않고, 같은 슬롯의 공격은 되돌립니다.'); render(); },
+  'quick-place'(d){
+    if(isWaiting() || !UI.pop) return;
+    const p=G.players[UI.viewer], k=UI.pop.k;
+    if(!p.reserve[d.type] && !Purchase.buy(p,d.type)){ setHint('포인트가 부족합니다.',true); return render(); }
+    if(Purchase.place(G,UI.viewer,d.type,k)) setHint(`${UNITS[d.type].name}을(를) 배치했습니다.`);
+    UI.pop=null; render();
+  },
+  'pop-scout'(){ if(UI.selUnit!=null) tryScout(UI.selUnit); },
+  'pop-build'(d){ if(UI.selUnit==null) return; UI.buildType=d.type; UI.mode='build'; setHint('기물 옆의 강조된 칸을 누르세요.'); render(); },
+  'build-cancel'(){ UI.mode=null; setHint(''); render(); },
+  'place-done'(){
+    const p=G.players[UI.viewer], hq=Purchase.hqOf(G,p.id); if(Purchase.reserveCount(p)||!Game.unitsOf(G,p.id).length||!hq) return;
+    if(UI.online){ if(isWaiting()) return; UI.submittedLocal={phase:'placement',turn:G.turn}; UI.selUnit=null; UI.selReserve=null; UI.selHQ=false;
+      Net.submit({placement:{units:Game.unitsOf(G,p.id).map(u=>({type:u.type,q:u.q,r:u.r})),hq:{q:hq.q,r:hq.r}}}); setHint('배치를 제출했습니다.'); render(); return; }
+    Flow.nextPlacement();
+  },
+  mode(d){
+    if(!ACTIONS[d.type].implemented || UI.plan.length>=CONFIG.actionsPerTurn) return;
+    UI.mode = UI.mode===d.type ? null : d.type;
+    if(UI.mode==='move') setHint(UI.selUnit!=null?'이동할 칸을 누르세요. 기병은 직선 3칸까지 돌격합니다.':'이동할 기물을 누르세요.');
+    else if(UI.mode==='attack'){ setHint(UI.selUnit!=null?'빨간 칸의 상대를 누르세요.':'공격할 기물을 누르세요. 기병과 기술병은 공격할 수 없습니다.'); }
+    else if(UI.mode==='defend'){ UI.selUnit=null; setHint('방어할 기물을 누르세요.'); }
+    else if(UI.mode==='recruit'){ UI.selUnit=null; UI.recruitType=null; setHint('본진이나 병영을 누르고 모집할 기물을 고르세요.'); }
+    else if(UI.mode==='upgrade'){ UI.selUnit=null; setHint('완공된 문명 전용 건물 바로 옆의 보병을 누르세요.'); }
+    else if(UI.mode==='scout'){ UI.selUnit=null; setHint('정찰할 기물을 누르세요. 기물이 그 시점에 서 있는 자리를 기준으로 정찰합니다.'); }
+    else if(UI.mode==='build'){
+      const p=G.players[UI.viewer], left=p.points-Plan.plannedCost(UI.plan);
+      const list=Rules.buildable(p.civ);
+      if(!list.some(B=>B.cost<=left)){ UI.mode=null; setHint('건설할 포인트가 부족합니다.',true); }
+      else { if(!list.includes(BUILDINGS[UI.buildType]) || BUILDINGS[UI.buildType].cost>left) UI.buildType=list.find(B=>B.cost<=left).id;
+        setHint('건물을 고르고, 건설할 기술병을 누른 뒤 옆의 강조된 칸을 누르세요. 공사 중인 기술병은 고를 수 없습니다.'); }
+    }
+    else setHint('');
+    render();
+  },
+  'build-type'(d){ UI.buildType=d.type; render(); },
+  'sel-unit'(d){
+    const id=Number(d.id);
+    if(UI.mode==='scout') return tryScout(id);
+    UI.selUnit = UI.selUnit===id && !UI.mode ? null : id;
+    if(UI.mode==='move') setHint('이동할 칸을 누르세요.');
+    if(UI.mode==='build') setHint('기물 옆의 강조된 칸을 누르세요.');
+    render();
+  },
+  'plan-undo'(){ UI.plan.pop(); setHint('마지막 행동을 취소했습니다.'); render(); },
+  'plan-clear'(){ UI.plan=[]; UI.mode=null; setHint('계획을 모두 지웠습니다.'); render(); },
+  'plan-submit'(){
+    UI.mode=null; UI.selUnit=null;
+    if(UI.online){ if(isWaiting()) return; UI.submittedLocal={phase:'game',turn:G.turn}; Net.submit({plan:{turn:G.turn,actions:UI.plan.slice()}}); render(); return; }
+    Flow.submit();
+  }
+};
+
+function tryScout(id){
+  if(Plan.canScout(G,UI.viewer,UI.plan,id)){
+    if(UI.plan.length>=CONFIG.actionsPerTurn){ setHint('행동 3개를 모두 계획했습니다.',true); return render(); }
+    UI.plan.push({type:'scout',unitId:id,at:Plan.positions(G,UI.viewer,UI.plan).get(id)}); UI.mode=null; UI.selUnit=id;
+    setHint(`정찰을 계획했습니다. 처리되면 그 자리 주변 ${CONFIG.scoutVision}칸이 다음 턴까지 보입니다.`);
+  } else setHint('이번 턴에 이미 정찰을 계획한 기물입니다.',true);
+  render();
+}
+
+function onTile(k){
+  if(UI.overlay) return;
+  if(UI.screen==='placement') return onPlacementTile(k);
+  if(UI.screen==='game') return onGameTile(k);
+}
+function onPlacementTile(k){
+  if(isWaiting()) return;
+  const pid=UI.viewer, t=G.board.tiles.get(k), occ=Game.unitAt(G,k), bd=Game.buildingAt(G,k);
+  if(bd && bd.owner===pid && bd.type==='hq'){ UI.pop=null; UI.selUnit=null; UI.selReserve=null; UI.selHQ=!UI.selHQ; return render(); }
+  if(UI.selHQ){ if(t.zoneOwner===pid && Purchase.placeHQ(G,pid,k)) setHint('본진을 옮겼습니다.'); UI.selHQ=false; return render(); }
+  if(occ && occ.owner===pid){ UI.pop=null; UI.selUnit = UI.selUnit===occ.id?null:occ.id; UI.selReserve=null; setHint(UI.selUnit?'옮길 칸을 누르거나 아래에서 판매·회수하세요.':''); return render(); }
+  if(t.zoneOwner!==pid){ UI.pop=null; UI.selUnit=null; setHint('자신의 시작 영역 안에만 배치할 수 있습니다.',true); return render(); }
+  if(occ || bd){ UI.pop=null; return render(); }
+  if(UI.selReserve){
+    Purchase.place(G,pid,UI.selReserve,k);
+    if(!G.players[pid].reserve[UI.selReserve]) UI.selReserve=null;
+    setHint(UI.selReserve?'계속 배치할 칸을 누르세요.':'배치했습니다.');
+  } else if(UI.selUnit!=null){
+    const u=Game.unit(G,UI.selUnit); if(u && Purchase.relocate(G,u,k)) setHint('기물을 옮겼습니다.');
+    UI.selUnit=null;
+  } else { UI.pop = UI.pop&&UI.pop.k===k ? null : {k}; setHint(''); }
+  render();
+}
+function onGameTile(k){
+  const pid=UI.viewer, waiting=isWaiting(), pos=Plan.positions(G,pid,waiting?[]:UI.plan);
+  let own=null; pos.forEach((c,id)=>{ if(Hex.key(c[0],c[1])===k) own=id; });
+  if(waiting){ UI.selUnit=own; return render(); }
+  const bd=Game.buildingAt(G,k), myB=bd&&bd.owner===pid?bd:null;
+  if(UI.mode==='recruit'){
+    if(UI.selBld!=null && UI.recruitType && Plan.recruitTargets(G,pid,UI.plan,UI.selBld).includes(k)){
+      const U=UNITS[UI.recruitType];
+      if(U.cost>G.players[pid].points-Plan.plannedCost(UI.plan)){ setHint('포인트가 부족합니다.',true); return render(); }
+      UI.plan.push({type:'recruit',buildingId:UI.selBld,unit:U.id,at:Hex.parse(k)});
+      UI.mode=null; UI.recruitType=null; setHint(`${U.name} 모집을 계획했습니다.`); return render();
+    }
+    if(myB){ UI.selBld=myB.id; UI.selUnit=null; UI.recruitType=null; setHint('모집할 기물을 고르세요.'); return render(); }
+    setHint('강조된 칸만 고를 수 있습니다.',true); return render();
+  }
+  if(myB && !UI.mode){ UI.selBld = UI.selBld===myB.id ? null : myB.id; UI.selUnit=null; return render(); }
+  if(UI.selBld!=null && !UI.mode){ UI.selBld=null; }
+  if(UI.mode==='defend'){ if(own!=null){ UI.selUnit=own; UI.mode=null; return Handlers['pop-defend'](); } setHint('자신의 기물을 눌러야 합니다.',true); return render(); }
+  if(UI.mode==='upgrade'){ if(own!=null && Plan.upgradeInfo(G,pid,UI.plan,own)){ UI.selUnit=own; UI.mode=null; return Handlers['pop-upgrade'](); } setHint('강조된 보병만 강화할 수 있습니다.',true); return render(); }
+  if(UI.mode==='scout'){ if(own!=null) return tryScout(own); setHint('자신의 기물을 눌러야 합니다.',true); return render(); }
+  if(UI.mode==='move' || UI.mode==='build'){
+    const targets = UI.selUnit==null ? [] : (UI.mode==='move' ? Plan.moveTargets(G,pid,UI.plan,UI.selUnit) : Plan.buildTargets(G,pid,UI.plan,UI.selUnit,UI.buildType));
+    if(own!=null && !targets.includes(k)){ UI.selUnit=own; setHint(UI.mode==='move'?'이동할 칸을 누르세요.':'기물 옆의 강조된 칸을 누르세요.'); return render(); }
+    if(UI.selUnit==null){ setHint('먼저 자신의 기물을 누르세요.',true); return render(); }
+    if(!targets.includes(k)){ setHint('강조된 칸만 고를 수 있습니다.',true); return render(); }
+    if(UI.mode==='move') UI.plan.push({type:'move',unitId:UI.selUnit,from:pos.get(UI.selUnit),to:Hex.parse(k)});
+    else {
+      const B=BUILDINGS[UI.buildType], left=G.players[pid].points-Plan.plannedCost(UI.plan);
+      if(B.cost>left){ setHint('포인트가 부족합니다.',true); return render(); }
+      UI.plan.push({type:'build',unitId:UI.selUnit,building:B.id,at:Hex.parse(k),from:pos.get(UI.selUnit)});
+      UI.mode=null;
+    }
+    if(UI.plan.length>=CONFIG.actionsPerTurn){ UI.mode=null; setHint('행동 3개를 모두 계획했습니다. 제출하세요.'); }
+    else setHint(UI.mode==='move'?'이동을 계획했습니다. 같은 기물을 계속 움직이거나 다른 기물을 고르세요.':'건설을 계획했습니다.');
+    return render();
+  }
+  if(UI.mode==='attack'){
+    if(UI.selUnit!=null && Plan.attackTargets(G,pid,UI.plan,UI.selUnit).includes(k)){ planAttack(k); UI.mode=null; return render(); }
+    if(own!=null){ UI.selUnit=own; setHint('빨간 칸의 상대를 누르세요.'); return render(); }
+    setHint('빨간 칸의 상대만 공격할 수 있습니다.',true); return render();
+  }
+  // 기본: 기물을 누르면 선택, 강조된 칸을 누르면 바로 공격·이동
+  if(own!=null){ UI.selUnit = UI.selUnit===own ? null : own; setHint(UI.selUnit!=null?'파란 칸은 이동, 빨간 칸은 공격입니다. 정찰과 건설은 기물 위 메뉴에서 고르세요.':''); return render(); }
+  if(UI.selUnit!=null){
+    if(UI.plan.length>=CONFIG.actionsPerTurn){ setHint('행동 3개를 모두 계획했습니다. 제출하거나 되돌리세요.',true); return render(); }
+    if(Plan.attackTargets(G,pid,UI.plan,UI.selUnit).includes(k)){ planAttack(k); return render(); }
+    if(Plan.moveTargets(G,pid,UI.plan,UI.selUnit).includes(k)){
+      UI.plan.push({type:'move',unitId:UI.selUnit,from:pos.get(UI.selUnit),to:Hex.parse(k)});
+      setHint(UI.plan.length>=CONFIG.actionsPerTurn?'행동 3개를 모두 계획했습니다. 제출하세요.':'이동을 계획했습니다. 이어서 같은 기물로 행동하거나 다른 기물을 누르세요.');
+      return render();
+    }
+  }
+  UI.selUnit=null; setHint('기물을 누르면 이동(파란 칸)과 공격(빨간 칸)할 수 있는 곳이 표시됩니다.');
+  render();
+}
+function planAttack(k){
+  const pid=UI.viewer, pos=Plan.positions(G,pid,UI.plan), tg=Plan.attackTargetAt(G,pid,k);
+  if(!tg) return;
+  UI.plan.push({type:'attack',unitId:UI.selUnit,target:tg,at:Hex.parse(k),from:pos.get(UI.selUnit)});
+  setHint(UI.plan.length>=CONFIG.actionsPerTurn?'행동 3개를 모두 계획했습니다. 제출하세요.':'공격을 계획했습니다.');
+}
+
+$app.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');
+  if(el){ if(el.disabled) return; const h=Handlers[el.dataset.act]; if(h) h(el.dataset,el); return; }
+  const t=e.target.closest('[data-k]'); if(t) onTile(t.dataset.k);
+});
+$app.addEventListener('change',e=>{
+  const n=e.target.dataset.seatName, ty=e.target.dataset.seatType;
+  if(n!=null) SETUP.seats[n].name=e.target.value;
+  if(ty!=null){ SETUP.seats[ty].type=e.target.value; render(); }
+  const sn=e.target.dataset.seatNet; if(sn!=null) Net.hostSetSeat(Number(sn),e.target.value);
+});
+$app.addEventListener('input',e=>{
+  const n=e.target.dataset.seatName; if(n!=null) SETUP.seats[n].name=e.target.value;
+  const f=e.target.dataset.field;
+  if(f && !e.target.readOnly){ UI[f]=e.target.value; if(f==='offerInput'){ const b=$app.querySelector('[data-act="net-answer"]'); if(b) b.disabled=!e.target.value||UI.netBusy; } }
+});
+window.addEventListener('beforeunload',e=>{ if(UI.online && Net.isHost && Net.hostMain && Net.hostMain.phase!=='lobby'){ e.preventDefault(); e.returnValue=''; } });
+
+Net.init();
+render();
+</script>
+</body>
+</html>
